@@ -5,6 +5,7 @@ Product demo page
 
 import os
 import time
+import base64
 import streamlit as st
 from pathlib import Path
 from dotenv import load_dotenv
@@ -25,7 +26,8 @@ from pipeline import PipelineConfig, run_pipeline
 BASE_DIR  = Path(__file__).parent
 PDFS_DIR  = BASE_DIR / "pdfs"
 DEMOS_DIR = BASE_DIR / "demos"
-LOGO_PATH = BASE_DIR / "assets" / "swishx_logo.png"
+LOGO_PATH   = BASE_DIR / "assets" / "swishx_logo.png"
+HERO_FRAME  = BASE_DIR / "assets" / "hero_frame.jpg"
 
 DEMO_VIDEOS = [
     {"file": "AllerDuo_intro.mp4",        "drug": "AllerDuo",    "topic": "Intro",           "composition": "Bilastine + Montelukast"},
@@ -294,7 +296,7 @@ st.markdown('<hr class="top-rule">', unsafe_allow_html=True)
 
 st.markdown("<div style='height:1.5rem'></div>", unsafe_allow_html=True)
 
-hero_left, hero_gap, hero_right = st.columns([5, 0.5, 4])
+hero_left, hero_right = st.columns([3, 1.8], gap="large")
 
 with hero_left:
     st.markdown("""
@@ -320,13 +322,28 @@ with hero_left:
     """, unsafe_allow_html=True)
 
 with hero_right:
-    featured = DEMOS_DIR / "AllerDuo_intro.mp4"
-    if featured.exists():
-        st.video(str(featured))
-        st.markdown(
-            '<p class="hero-video-label">Sample output — AllerDuo Intro reel</p>',
-            unsafe_allow_html=True,
-        )
+    if HERO_FRAME.exists():
+        img_b64 = base64.b64encode(HERO_FRAME.read_bytes()).decode()
+        st.markdown(f"""
+        <div style="display:flex; justify-content:center; padding-top:0.5rem;">
+          <div style="
+            width: 220px;
+            background: #000;
+            border-radius: 28px;
+            padding: 10px 8px;
+            box-shadow: 0 24px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06);
+          ">
+            <div style="border-radius: 20px; overflow: hidden;">
+              <img src="data:image/jpeg;base64,{img_b64}"
+                   style="width:100%; display:block;" />
+            </div>
+            <div style="
+              text-align:center; padding-top:8px;
+              font-family:'Inter',sans-serif; font-size:10px; color:#444;
+            ">▶ &nbsp;AllerDuo — Intro reel</div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
