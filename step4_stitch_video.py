@@ -53,7 +53,8 @@ def _get_encoder_args():
             pass
 
     return ["-c:v", "libx264", "-preset", preset, "-crf", str(crf)]
-DEFAULT_LOGO = os.path.join(SCRIPT_DIR, "assets", "swishx_logo.png")
+DEFAULT_LOGO = os.path.join(SCRIPT_DIR, "assets", "SwishX_White_logo.png")
+BRANDING_LOGO = os.path.join(SCRIPT_DIR, "assets", "SwishX_White_logo.png")
 DEFAULT_BG_MUSIC = os.path.join(SCRIPT_DIR, "assets", "bg_music_ambient.mp3")
 
 
@@ -257,6 +258,7 @@ def create_video(
     bg_music_path: str | None = None,
     output_suffix: str = "",
     durations_path: str | None = None,
+    branding_logo_path: str | None = None,
 ):
     import shutil
     if not shutil.which("ffmpeg"):
@@ -314,11 +316,18 @@ def create_video(
         bg_idx = input_idx
         input_idx += 1
 
-    # Input: logo
+    # Input: company logo (top-right)
     logo_idx = None
     if logo_path and os.path.exists(logo_path):
         cmd.extend(["-i", logo_path])
         logo_idx = input_idx
+        input_idx += 1
+
+    # Input: branding logo (bottom-right)
+    branding_idx = None
+    if branding_logo_path and os.path.exists(branding_logo_path):
+        cmd.extend(["-i", branding_logo_path])
+        branding_idx = input_idx
         input_idx += 1
 
     # --- Build filter complex ---
@@ -355,15 +364,29 @@ def create_video(
 
     video_label = prev
 
-    # Overlay logo (top-right corner, semi-transparent, small)
+    # Overlay company logo (top-right corner)
     if logo_idx is not None:
+        cw = _stitch_cfg.get("company_logo_width", 220)
+        co = _stitch_cfg.get("company_logo_opacity", 0.8)
         filter_parts.append(
-            f"[{logo_idx}:v]scale=160:-1,format=rgba,colorchannelmixer=aa=0.8[logo]"
+            f"[{logo_idx}:v]scale={cw}:-1,format=rgba,colorchannelmixer=aa={co}[clogo]"
         )
         filter_parts.append(
-            f"[{video_label}][logo]overlay=W-w-40:40[logoed]"
+            f"[{video_label}][clogo]overlay=W-w-40:40[with_clogo]"
         )
-        video_label = "logoed"
+        video_label = "with_clogo"
+
+    # Overlay SwishX branding logo (bottom-right, above subtitle area)
+    if branding_idx is not None:
+        bw = _stitch_cfg.get("branding_logo_width", 120)
+        bo = _stitch_cfg.get("branding_logo_opacity", 0.6)
+        filter_parts.append(
+            f"[{branding_idx}:v]scale={bw}:-1,format=rgba,colorchannelmixer=aa={bo}[blogo]"
+        )
+        filter_parts.append(
+            f"[{video_label}][blogo]overlay=W-w-30:H-h-30[with_blogo]"
+        )
+        video_label = "with_blogo"
 
     # Final video output label
     filter_parts.append(f"[{video_label}]copy[vout]")
@@ -411,7 +434,8 @@ def create_video(
 
     print(f"\nStitching {len(frames)} frames into video...")
     print(f"  Resolution: 1080x1920 (9:16)")
-    print(f"  Logo: {'yes' if logo_idx else 'no'}")
+    print(f"  Company logo: {'yes' if logo_idx else 'no'}")
+    print(f"  Branding logo: {'yes' if branding_idx else 'no'}")
     print(f"  Subtitles: {'yes' if srt_path else 'no'}")
     print(f"  Voiceover: {'yes' if vo_idx else 'no'}")
     print(f"  Background music: {'yes' if bg_idx else 'no'}")
@@ -476,6 +500,7 @@ def main():
     audio_path = None
     script_path = None
     logo_path = DEFAULT_LOGO
+    branding_logo_path = BRANDING_LOGO
     bg_music_path = DEFAULT_BG_MUSIC
     output_suffix = ""
     durations_path = None
@@ -488,6 +513,9 @@ def main():
         if arg == "--logo":
             logo_path = sys.argv[i + 1]
             i += 2
+        elif arg == "--branding-logo":
+            branding_logo_path = sys.argv[i + 1]
+            i += 2
         elif arg == "--music":
             bg_music_path = sys.argv[i + 1]
             i += 2
@@ -496,6 +524,9 @@ def main():
             i += 1
         elif arg == "--no-logo":
             logo_path = None
+            i += 1
+        elif arg == "--no-branding":
+            branding_logo_path = None
             i += 1
         elif arg == "--suffix":
             output_suffix = sys.argv[i + 1]
@@ -511,7 +542,7 @@ def main():
             positional += 1
             i += 1
 
-    create_video(manifest_path, audio_path, script_path, logo_path, bg_music_path, output_suffix, durations_path)
+    create_video(manifest_path, audio_path, script_path, logo_path, bg_music_path, output_suffix, durations_path, branding_logo_path)
 
 
 if __name__ == "__main__":

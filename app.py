@@ -24,19 +24,29 @@ except Exception:
 from pipeline import PipelineConfig, run_pipeline
 from config_loader import load_topic_map
 
+def _img_b64(path):
+    """Read an image file and return base64 string."""
+    return base64.b64encode(Path(path).read_bytes()).decode()
+
 BASE_DIR  = Path(__file__).parent
 PDFS_DIR  = BASE_DIR / "pdfs"
 DEMOS_DIR = BASE_DIR / "demos"
-LOGO_PATH   = BASE_DIR / "assets" / "swishx_logo.png"
+LOGO_PATH   = BASE_DIR / "assets" / "Swish_X_black_logo_02.png"
 HERO_FRAME  = BASE_DIR / "assets" / "hero_frame.jpg"
 
 DEMO_VIDEOS = [
-    {"file": "AllerDuo_intro.mp4",        "drug": "AllerDuo",    "topic": "Intro",           "composition": "Bilastine + Montelukast"},
-    {"file": "Tibrolin_intro.mp4",         "drug": "Tibrolin",    "topic": "Intro",           "composition": "Trypsin + Bromelain + Rutoside"},
-    {"file": "Rexulti_intro.mp4",          "drug": "Rexulti",     "topic": "Intro",           "composition": "Brexpiprazole"},
-    {"file": "Subneuro-NT_intro.mp4",      "drug": "Subneuro-NT", "topic": "Intro",           "composition": "Methylcobalamin + Pregabalin + Nortriptyline"},
-    {"file": "AllerDuo_mechanism.mp4",     "drug": "AllerDuo",    "topic": "Mechanism",       "composition": "Bilastine + Montelukast"},
-    {"file": "AllerDuo_dosage_safety.mp4", "drug": "AllerDuo",    "topic": "Dosage & Safety", "composition": "Bilastine + Montelukast"},
+    {"file": "AllerDuo_intro.mp4",        "drug": "AllerDuo",    "topic": "Intro",
+     "composition": "Bilastine + Montelukast", "pdf_thumb": "assets/pdf_thumb_AllerDuo.png", "pages": 9},
+    {"file": "Tibrolin_intro.mp4",         "drug": "Tibrolin",    "topic": "Intro",
+     "composition": "Trypsin + Bromelain + Rutoside", "pdf_thumb": "assets/pdf_thumb_Tibrolin.png", "pages": 4},
+    {"file": "Rexulti_intro.mp4",          "drug": "Rexulti",     "topic": "Intro",
+     "composition": "Brexpiprazole", "pdf_thumb": "assets/pdf_thumb_Rexulti.png", "pages": 9},
+    {"file": "Subneuro-NT_intro.mp4",      "drug": "Subneuro-NT", "topic": "Intro",
+     "composition": "Methylcobalamin + Pregabalin + Nortriptyline", "pdf_thumb": "assets/pdf_thumb_Subneuro-NT.png", "pages": 4},
+    {"file": "AllerDuo_mechanism.mp4",     "drug": "AllerDuo",    "topic": "Mechanism",
+     "composition": "Bilastine + Montelukast", "pdf_thumb": "assets/pdf_thumb_AllerDuo.png", "pages": 9},
+    {"file": "AllerDuo_dosage_safety.mp4", "drug": "AllerDuo",    "topic": "Dosage & Safety",
+     "composition": "Bilastine + Montelukast", "pdf_thumb": "assets/pdf_thumb_AllerDuo.png", "pages": 9},
 ]
 
 TOPIC_COLORS = {
@@ -254,12 +264,17 @@ label { font-family: 'Inter', sans-serif !important; }
 }
 
 /* ── Feature cards ── */
+.feat-row {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+}
 .feat-card {
     background: #f7f7f8;
     border: 1px solid #e8e8e8;
     border-radius: 12px;
     padding: 1.3rem 1.2rem;
-    height: 100%;
+    flex: 1 1 0;
     transition: border-color .25s, transform .25s, box-shadow .25s;
 }
 .feat-card:hover { border-color: #d0d0d0; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.08); }
@@ -294,6 +309,41 @@ label { font-family: 'Inter', sans-serif !important; }
     display: inline-block; padding: 2px 9px;
     border-radius: 20px; font-size: 11px; font-weight: 600;
     font-family: 'Montserrat', sans-serif;
+}
+
+.pdf-badge {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px; font-weight: 500;
+    color: #999999; background: #f0f0f0;
+    border-radius: 12px; padding: 2px 8px;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+/* ── PDF → Video demo card ── */
+.demo-transform {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.demo-pdf-side {
+    flex-shrink: 0;
+}
+.demo-pdf-img {
+    width: 80px; height: 100px;
+    object-fit: cover; object-position: top;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+}
+.demo-arrow-small {
+    font-size: 1.2rem; color: #fd4816;
+    font-weight: 700;
+}
+.demo-pages {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px; color: #999999;
+    margin-top: 3px;
 }
 
 /* ── Form ── */
@@ -428,7 +478,7 @@ div[data-testid="stToast"] {
 # ══════════════════════════════════════════════════════════════════════════════
 
 if LOGO_PATH.exists():
-    st.image(str(LOGO_PATH), width=110)
+    st.image(str(LOGO_PATH), width=180)
 else:
     st.markdown('<div class="swx-logo">SwishX</div>', unsafe_allow_html=True)
 
@@ -503,26 +553,24 @@ st.markdown(
 )
 
 FEATURES = [
-    ("🎬", "Bite-Sized Video Reels",
-     "Your reps watch a 60-second reel instead of skimming a 40-page PDF. Every scene is tailored to their role — so they remember what matters."),
-    ("🧠", "Built-In Knowledge Check",
-     "Quick questions after each reel that test real understanding — not just recall. You see exactly who gets it and who doesn't."),
-    ("🏆", "Streaks That Stick",
-     "Daily streaks and instant feedback keep your team coming back. Completion rates go up because it feels like a game, not homework."),
-    ("📊", "Live Team Rankings",
-     "See who's leading across regions, teams, or roles. A little friendly competition turns training from a chore into a challenge."),
+    ("🎬", "Bite-Sized Reels",
+     "60-second videos tailored to each role — not 40-page PDFs."),
+    ("🧠", "Knowledge Checks",
+     "Quick questions that test real understanding, not recall."),
+    ("🏆", "Streaks & Gamification",
+     "Daily streaks and instant feedback keep your team hooked."),
+    ("📊", "Leaderboards",
+     "Friendly competition across regions, teams, and roles."),
+    ("💊", "Sales-Linked Insights",
+     "Tie leaderboard scores to primary sales data directly."),
 ]
 
-fcols = st.columns(4, gap="medium")
-for i, (icon, title, desc) in enumerate(FEATURES):
-    with fcols[i]:
-        st.markdown(f"""
-        <div class="feat-card">
-          <div class="feat-icon">{icon}</div>
-          <div class="feat-title">{title}</div>
-          <div class="feat-desc">{desc}</div>
-        </div>
-        """, unsafe_allow_html=True)
+cards_html = '<div class="feat-row">' + "".join(
+    f'<div class="feat-card"><div class="feat-icon">{ic}</div>'
+    f'<div class="feat-title">{t}</div><div class="feat-desc">{d}</div></div>'
+    for ic, t, d in FEATURES
+) + '</div>'
+st.markdown(cards_html, unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -531,30 +579,43 @@ for i, (icon, title, desc) in enumerate(FEATURES):
 
 st.markdown('<hr class="section-rule" id="demo-reels">', unsafe_allow_html=True)
 st.markdown('<div class="s-eyebrow">See it in action</div>', unsafe_allow_html=True)
-st.markdown('<div class="s-title">Sample reels across 4 drugs</div>', unsafe_allow_html=True)
+st.markdown('<div class="s-title">PDF in, video reel out</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="s-sub">Each generated from a single PDF — fully automated, no editing, no hallucination</div>',
+    '<div class="s-sub">Each reel generated from a single drug PDF — fully automated, zero hallucination</div>',
     unsafe_allow_html=True,
 )
 
-vcols = st.columns(3, gap="medium")
-for i, demo in enumerate(DEMO_VIDEOS):
-    video_path = DEMOS_DIR / demo["file"]
-    if not video_path.exists():
-        continue
-    color = TOPIC_COLORS.get(demo["topic"], "#fd4816")
-    with vcols[i % 3]:
-        st.video(str(video_path))
-        st.markdown(f"""
-        <div class="vid-meta">
-          <span class="t-badge" style="background:{color}12;color:{color};border:1px solid {color}33;">{demo["topic"]}</span>
-          <div>
-            <div class="vid-drug">{demo["drug"]}</div>
-            <div class="vid-comp">{demo["composition"]}</div>
-          </div>
-        </div>
-        <div style="height:1.4rem;"></div>
-        """, unsafe_allow_html=True)
+for row_start in range(0, len(DEMO_VIDEOS), 3):
+    row_demos = DEMO_VIDEOS[row_start:row_start + 3]
+    # 3 content cols with spacer cols between: [content, gap, content, gap, content]
+    all_cols = st.columns([1, 0.4, 1, 0.4, 1], gap="small")
+    demo_cols = [all_cols[0], all_cols[2], all_cols[4]]
+    for i, demo in enumerate(row_demos):
+        video_path = DEMOS_DIR / demo["file"]
+        thumb_path = BASE_DIR / demo.get("pdf_thumb", "")
+        if not video_path.exists():
+            continue
+        topic_color = TOPIC_COLORS.get(demo["topic"], "#fd4816")
+        with demo_cols[i]:
+            st.markdown(f"""
+            <div style="margin-bottom:8px;">
+              <span class="vid-drug" style="font-size:14px;">{demo["drug"]}</span>
+              <span class="t-badge" style="background:{topic_color}12;color:{topic_color};border:1px solid {topic_color}33;margin-left:6px;font-size:10px;">{demo["topic"]}</span>
+            </div>
+            """, unsafe_allow_html=True)
+            if thumb_path.exists():
+                st.markdown(f"""
+                <div class="demo-transform">
+                  <div class="demo-pdf-side">
+                    <img src="data:image/png;base64,{_img_b64(thumb_path)}" class="demo-pdf-img">
+                    <div class="demo-pages">{demo.get("pages", "?")}‑page PDF</div>
+                  </div>
+                  <div class="demo-arrow-small">→</div>
+                </div>
+                """, unsafe_allow_html=True)
+            st.video(str(video_path))
+            st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -625,9 +686,21 @@ with left:
         height=80,
         disabled=is_generating,
     )
+    st.markdown("<div style='height:.4rem'></div>", unsafe_allow_html=True)
+    st.markdown('<div class="form-label">③ Company Logo (optional)</div>', unsafe_allow_html=True)
+    company_logo_file = st.file_uploader(
+        "logo", type=["png", "jpg", "jpeg"],
+        label_visibility="collapsed", disabled=is_generating,
+    )
+    company_logo_path = ""
+    if company_logo_file:
+        logo_save = BASE_DIR / "output" / f"company_logo_{company_logo_file.name}"
+        logo_save.parent.mkdir(parents=True, exist_ok=True)
+        logo_save.write_bytes(company_logo_file.getbuffer())
+        company_logo_path = str(logo_save)
 
 with right:
-    st.markdown('<div class="form-label">③ Configure</div>', unsafe_allow_html=True)
+    st.markdown('<div class="form-label">④ Configure</div>', unsafe_allow_html=True)
 
     profile = st.selectbox(
         "Audience",
@@ -684,6 +757,7 @@ if generate and not is_generating:
         mode=mode,
         guidance=guidance,
         language=language,
+        company_logo_path=company_logo_path,
     )
     st.rerun()
 

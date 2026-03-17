@@ -45,6 +45,7 @@ class PipelineConfig:
     mode: str = "demo"
     guidance: str = ""
     language: str = "en"
+    company_logo_path: str = ""
 
 
 ProgressCallback = Callable[[str, str, float], None]
@@ -305,15 +306,17 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
 
         if not video_path.exists():
             from step4_stitch_video import create_video
-            logo = str(BASE_DIR / "assets" / "swishx_logo.png")
+            branding_logo = str(BASE_DIR / "assets" / "SwishX_White_logo.png")
+            company_logo = config.company_logo_path or None
             result = create_video(
                 str(frames_manifest),
                 audio_path=str(audio_path),
                 script_path=str(script_path),
                 durations_path=str(durations_path),
-                logo_path=logo if os.path.exists(logo) else None,
+                logo_path=company_logo if company_logo and os.path.exists(company_logo) else None,
                 bg_music_path=None,
                 output_suffix="_v1",
+                branding_logo_path=branding_logo if os.path.exists(branding_logo) else None,
             )
             if result is None:
                 return {"video_path": None, "duration": 0, "error": "Video stitching failed"}
