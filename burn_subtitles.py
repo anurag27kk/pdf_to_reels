@@ -27,8 +27,19 @@ FONT_PATHS = [
     "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
 ]
 
+_DEVANAGARI_FONT_PATHS = [
+    "/System/Library/Fonts/Supplemental/Devanagari Sangam MN.ttc",  # macOS
+    "/System/Library/Fonts/Kohinoor.ttc",                            # macOS alt
+    "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf", # Linux (fonts-noto)
+    "/usr/share/fonts/opentype/noto/NotoSansDevanagari-Regular.otf", # Linux alt
+]
 
-def _find_font():
+
+def _find_font(language: str = "en"):
+    if language == "hi":
+        for p in _DEVANAGARI_FONT_PATHS:
+            if os.path.exists(p):
+                return p
     for p in FONT_PATHS:
         if os.path.exists(p):
             return p
@@ -324,11 +335,12 @@ def _generate_overlay_video_legacy(events, duration, output_path, box_ranges=Non
     return output_path
 
 
-def generate_overlay_video(events, duration, output_path, box_ranges=None):
+def generate_overlay_video(events, duration, output_path, box_ranges=None, language="en"):
     """Fast: render only unique visual states, use FFmpeg concat demuxer."""
+    font_path = _find_font(language) or STYLE["font_path"]
     try:
-        font = ImageFont.truetype(STYLE["font_path"], STYLE["font_size"])
-        bold_font = ImageFont.truetype(STYLE["font_path"], STYLE["bold_font_size"])
+        font = ImageFont.truetype(font_path, STYLE["font_size"])
+        bold_font = ImageFont.truetype(font_path, STYLE["bold_font_size"])
     except (OSError, IOError):
         font = ImageFont.load_default()
         bold_font = font

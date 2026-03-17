@@ -21,18 +21,29 @@ _FONT_PATHS = [
     "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
 ]
 
+_DEVANAGARI_FONT_PATHS = [
+    "/System/Library/Fonts/Supplemental/Devanagari Sangam MN.ttc",  # macOS
+    "/System/Library/Fonts/Kohinoor.ttc",                            # macOS alt
+    "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf", # Linux (fonts-noto)
+    "/usr/share/fonts/opentype/noto/NotoSansDevanagari-Regular.otf", # Linux alt
+]
 
-def _find_system_font():
+
+def _find_system_font(language: str = "en"):
+    if language == "hi":
+        for p in _DEVANAGARI_FONT_PATHS:
+            if os.path.exists(p):
+                return p
     for p in _FONT_PATHS:
         if os.path.exists(p):
             return p
     return None
 
 
-def _load_fonts(sizes: dict[str, int]) -> dict[str, ImageFont.FreeTypeFont]:
+def _load_fonts(sizes: dict[str, int], language: str = "en") -> dict[str, ImageFont.FreeTypeFont]:
     """Load fonts at specified sizes. Falls back to default if system fonts unavailable."""
     fonts = {}
-    font_path = _find_system_font()
+    font_path = _find_system_font(language)
     for name, size in sizes.items():
         try:
             if font_path:
@@ -90,7 +101,8 @@ DARK_TEXT = (40, 40, 80)
 
 def render_quiz_intro(scene: dict, filename: str) -> str:
     """Render quiz intro screen with lightbulb/brain icon feel."""
-    fonts = _load_fonts({"title": 64, "subtitle": 40, "icon": 120})
+    lang = scene.get("_language", "en")
+    fonts = _load_fonts({"title": 64, "subtitle": 40, "icon": 120}, language=lang)
     img = Image.new("RGB", (W, H))
     draw = ImageDraw.Draw(img)
     _draw_gradient(draw, BLUE_TOP, BLUE_BOTTOM)
@@ -120,7 +132,8 @@ def render_quiz_intro(scene: dict, filename: str) -> str:
 
 def render_quiz(scene: dict, filename: str) -> str:
     """Render quiz question with 4 options."""
-    fonts = _load_fonts({"question": 38, "option": 34, "badge": 36, "label": 28})
+    lang = scene.get("_language", "en")
+    fonts = _load_fonts({"question": 38, "option": 34, "badge": 36, "label": 28}, language=lang)
     img = Image.new("RGB", (W, H))
     draw = ImageDraw.Draw(img)
     _draw_gradient(draw, BLUE_TOP, BLUE_BOTTOM)
@@ -176,7 +189,8 @@ def render_quiz(scene: dict, filename: str) -> str:
 
 def render_quiz_answer(scene: dict, filename: str) -> str:
     """Render quiz answer reveal with correct answer highlighted."""
-    fonts = _load_fonts({"title": 52, "answer": 38, "explain": 30})
+    lang = scene.get("_language", "en")
+    fonts = _load_fonts({"title": 52, "answer": 38, "explain": 30}, language=lang)
     img = Image.new("RGB", (W, H))
     draw = ImageDraw.Draw(img)
     _draw_gradient(draw, BLUE_TOP, BLUE_BOTTOM)
@@ -228,7 +242,8 @@ def render_quiz_answer(scene: dict, filename: str) -> str:
 
 def render_score(scene: dict, filename: str) -> str:
     """Render score/celebration screen."""
-    fonts = _load_fonts({"score": 72, "xp": 44, "sub": 36, "trophy": 100})
+    lang = scene.get("_language", "en")
+    fonts = _load_fonts({"score": 72, "xp": 44, "sub": 36, "trophy": 100}, language=lang)
     img = Image.new("RGB", (W, H))
     draw = ImageDraw.Draw(img)
     _draw_gradient(draw, BLUE_TOP, BLUE_BOTTOM)
@@ -271,7 +286,8 @@ def render_score(scene: dict, filename: str) -> str:
 
 def render_cta(scene: dict, filename: str) -> str:
     """Render call-to-action / streak screen."""
-    fonts = _load_fonts({"streak": 48, "main": 44, "sub": 34, "button": 38, "icon": 60})
+    lang = scene.get("_language", "en")
+    fonts = _load_fonts({"streak": 48, "main": 44, "sub": 34, "button": 38, "icon": 60}, language=lang)
     img = Image.new("RGB", (W, H))
     draw = ImageDraw.Draw(img)
     _draw_gradient(draw, BLUE_TOP, BLUE_BOTTOM)
@@ -314,7 +330,8 @@ def render_cta(scene: dict, filename: str) -> str:
 
 def render_content_fallback(scene: dict, filename: str) -> str:
     """Fallback template for content scenes when AI image generation fails."""
-    fonts = _load_fonts({"title": 48, "bullet": 38, "narration": 30})
+    lang = scene.get("_language", "en")
+    fonts = _load_fonts({"title": 48, "bullet": 38, "narration": 30}, language=lang)
     img = Image.new("RGB", (W, H))
     draw = ImageDraw.Draw(img)
     _draw_gradient(draw, BLUE_TOP, BLUE_BOTTOM)

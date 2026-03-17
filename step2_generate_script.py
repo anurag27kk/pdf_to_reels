@@ -50,7 +50,15 @@ def get_reel_topic_prompt(topic: str, analysis: dict | None = None) -> str:
     return base_prompt
 
 
-def generate_script(pdf_text: str, profile: str, topic: str, analysis: dict | None = None, guidance: str = "") -> dict:
+_HINDI_DIRECTIVE = (
+    "\n\nLANGUAGE DIRECTIVE — NON-NEGOTIABLE:\n"
+    "Generate ALL narration, on_screen_text, quiz questions, quiz options, quiz explanations, "
+    "score text, and CTA text in Hindi (Devanagari script). Keep drug names, brand names, "
+    'dosages, and the image_prompt field in English. Set the JSON "language" field to "hi".'
+)
+
+
+def generate_script(pdf_text: str, profile: str, topic: str, analysis: dict | None = None, guidance: str = "", language: str = "en") -> dict:
     """Generate complete script with image_prompts (monolithic, single-pass)."""
     cfg = MODELS["script_generation"]
 
@@ -60,6 +68,8 @@ def generate_script(pdf_text: str, profile: str, topic: str, analysis: dict | No
     guidance_block = ""
     if guidance and guidance.strip():
         guidance_block = f"CREATIVE DIRECTION FROM CLIENT:\n{guidance.strip()}\nUse this to guide the tone, focus, and emphasis of the script."
+    if language == "hi":
+        guidance_block += _HINDI_DIRECTIVE
 
     user_prompt = USER_PROMPT_TEMPLATE.format(
         pdf_content=pdf_text,
@@ -136,7 +146,7 @@ def _call_claude(system: str, user: str, cfg: dict) -> str:
     return text
 
 
-def generate_script_outline(pdf_text: str, profile: str, topic: str, analysis: dict | None = None, guidance: str = "") -> dict:
+def generate_script_outline(pdf_text: str, profile: str, topic: str, analysis: dict | None = None, guidance: str = "", language: str = "en") -> dict:
     """Generate script without image_prompt fields (Phase 1 of two-phase generation)."""
     cfg = MODELS["script_outline"]
     profile_context = get_profile_context(profile)
@@ -145,6 +155,8 @@ def generate_script_outline(pdf_text: str, profile: str, topic: str, analysis: d
     guidance_block = ""
     if guidance and guidance.strip():
         guidance_block = f"CREATIVE DIRECTION FROM CLIENT:\n{guidance.strip()}\nUse this to guide the tone, focus, and emphasis of the script."
+    if language == "hi":
+        guidance_block += _HINDI_DIRECTIVE
 
     user_prompt = USER_PROMPT_TEMPLATE.format(
         pdf_content=pdf_text,

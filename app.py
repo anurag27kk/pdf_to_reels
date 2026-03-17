@@ -641,6 +641,8 @@ with right:
         "Jeevan — Expressive":         "jeevan",
     }
     voice = voice_map[st.selectbox("Voice", list(voice_map.keys()), disabled=is_generating)]
+    language_label = st.radio("Language", ["English", "Hindi"], horizontal=True, disabled=is_generating)
+    language = "hi" if language_label == "Hindi" else "en"
     include_quiz = st.checkbox("Include quiz + gamification", value=True, disabled=is_generating)
     mode = "demo" if include_quiz else "production"
 
@@ -663,6 +665,7 @@ if generate and not is_generating:
         tts="elevenlabs",
         mode=mode,
         guidance=guidance,
+        language=language,
     )
     st.rerun()
 

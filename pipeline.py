@@ -43,6 +43,7 @@ class PipelineConfig:
     tts: str = "elevenlabs"
     mode: str = "demo"
     guidance: str = ""
+    language: str = "en"
 
 
 ProgressCallback = Callable[[str, str, float], None]
@@ -104,7 +105,7 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
                 generate_image_prompts, merge_image_prompts, filter_quiz_scenes,
             )
             pdf_text = txt_path.read_text()
-            script = generate_script_outline(pdf_text, config.profile, config.topic, analysis, guidance=config.guidance)
+            script = generate_script_outline(pdf_text, config.profile, config.topic, analysis, guidance=config.guidance, language=config.language)
 
             if config.mode == "production":
                 full_path = script_path.with_name(script_path.stem + "_full.json")
@@ -152,6 +153,7 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
             script_data = json.loads(script_path.read_text())
             scenes = script_data["scenes"]
             product_name = script_data["product_name"]
+            lang = script_data.get("language", config.language)
             base = script_path.stem
             frames_dir = str(OUTPUT_DIR / f"{base}_frames")
             os.makedirs(frames_dir, exist_ok=True)
@@ -161,6 +163,7 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
             ai_scenes = []
 
             for scene in scenes:
+                scene["_language"] = lang
                 scene_type = scene.get("scene_type", "content")
                 scene_num = scene["scene_number"]
                 filename = f"{frames_dir}/scene_{scene_num:02d}_{scene_type}.png"
@@ -207,7 +210,7 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
                         print("  Falling back to monolithic script generation...")
                         try:
                             full_script = generate_script(
-                                pdf_text, config.profile, config.topic, analysis, guidance=config.guidance,
+                                pdf_text, config.profile, config.topic, analysis, guidance=config.guidance, language=config.language,
                             )
                             if config.mode == "production":
                                 full_script = filter_quiz_scenes(full_script)
@@ -320,6 +323,7 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
 
             script_data = json.loads(script_path.read_text())
             durations_data = json.loads(durations_path.read_text())
+            sub_lang = script_data.get("language", config.language)
             enrich_drug_names(script_data)
 
             probe = subprocess.run(
@@ -336,7 +340,7 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
             os.close(overlay_fd)
 
             try:
-                overlay_result = generate_overlay_video(events, video_duration, overlay_path, box_ranges)
+                overlay_result = generate_overlay_video(events, video_duration, overlay_path, box_ranges, language=sub_lang)
                 if not overlay_result:
                     # Fall back to un-subtitled video
                     on_progress("done", "Done (subtitles skipped)", 1.0)
