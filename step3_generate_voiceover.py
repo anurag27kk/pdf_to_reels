@@ -134,7 +134,7 @@ def generate_voiceover(script_path: str, voice_key: str = "gaurav") -> str:
     # Parallel TTS calls
     tts_results = {}  # scene_num -> (mp3_path, audio_dur)
     if narrated_scenes:
-        max_workers = min(len(narrated_scenes), 5)
+        max_workers = min(len(narrated_scenes), 4)
         print(f"  Generating {len(narrated_scenes)} TTS clips in parallel ({max_workers} workers)...")
 
         def _tts_one(scene):

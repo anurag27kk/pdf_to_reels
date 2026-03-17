@@ -829,16 +829,10 @@ elif st.session_state.pipeline_result is not None:
         st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
         out_left, out_right = st.columns([1.2, 1], gap="large")
         with out_left:
-            vid_bytes = Path(result["video_path"]).read_bytes()
-            vid_b64 = base64.b64encode(vid_bytes).decode()
-            st.markdown(
-                f'<video controls style="max-height:420px;width:auto;display:block;margin:0 auto;border-radius:8px;">'
-                f'<source src="data:video/mp4;base64,{vid_b64}" type="video/mp4"></video>',
-                unsafe_allow_html=True,
-            )
+            st.video(result["video_path"])
             st.download_button(
                 "⬇  Download MP4",
-                data=vid_bytes,
+                data=Path(result["video_path"]).read_bytes(),
                 file_name=Path(result["video_path"]).name,
                 mime="video/mp4",
             )

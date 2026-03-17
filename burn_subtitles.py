@@ -63,7 +63,7 @@ def _get_encoder_args():
                 return ["-c:v", "h264_videotoolbox", "-q:v", "65"]
         except Exception:
             pass
-    return ["-c:v", "libx264", "-preset", "fast", "-crf", "23"]
+    return ["-c:v", "libx264", "-preset", "fast", "-crf", "23", "-threads", "2"]
 
 
 # --- Style config (doctor profile) ---

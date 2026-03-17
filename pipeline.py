@@ -6,6 +6,7 @@ Imports step functions directly — no subprocess overhead.
 """
 
 from __future__ import annotations
+import gc
 import json
 import os
 import time
@@ -94,6 +95,8 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
             analysis_path.write_text(json.dumps(analysis, indent=2))
         else:
             analysis = json.loads(analysis_path.read_text())
+
+        gc.collect()
 
         # --- Step 2: Script outline (no image_prompt) ---
         on_progress("script", "Generating script outline...", 0.22)
@@ -231,7 +234,7 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
                     on_progress("media", f"Generating {len(ai_scenes)} AI frames with Gemini...", 0.50)
                     api_key = os.environ.get("GOOGLE_API_KEY")
                     client = genai.Client(api_key=api_key)
-                    max_workers = min(len(ai_scenes), 4)
+                    max_workers = min(len(ai_scenes), 3)
                     ai_done = [0]
                     ai_total = len(ai_scenes)
 
@@ -292,6 +295,10 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
             voice_future.result()
             voice_pool.shutdown(wait=False)
 
+        # Free large text + collected API objects before FFmpeg steps
+        del pdf_text
+        gc.collect()
+
         # --- Step 4: Stitch ---
         on_progress("stitch", "Stitching video...", 0.70)
         video_path = OUTPUT_DIR / f"{base_name}_{config.profile}_{config.topic}_script_v1_video.mp4"
@@ -310,6 +317,8 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
             )
             if result is None:
                 return {"video_path": None, "duration": 0, "error": "Video stitching failed"}
+
+        gc.collect()
 
         # --- Step 5: Subtitles ---
         on_progress("subtitles", "Burning subtitles...", 0.85)

@@ -169,10 +169,11 @@ def generate_script_outline(pdf_text: str, profile: str, topic: str, analysis: d
     return _extract_json(text)
 
 
-def generate_image_prompts(script_outline: dict, pdf_text: str) -> dict:
+def generate_image_prompts(script_outline: dict, pdf_text: str = "") -> dict:
     """Generate image prompts for content scenes (Phase 2 of two-phase generation).
 
     Returns dict mapping scene_number (str) to image_prompt string.
+    pdf_text is accepted for backward compat but only a compact drug context is sent.
     """
     cfg = MODELS["image_prompt_generation"]
 
@@ -187,8 +188,22 @@ def generate_image_prompts(script_outline: dict, pdf_text: str) -> dict:
                 "on_screen_text": scene.get("on_screen_text", []),
             })
 
+    # Send compact drug context instead of the full PDF — the script outline
+    # already contains all drug-specific info in the narration fields.
+    parts = [f"Product: {script_outline.get('product_name', 'Unknown')}"]
+    if script_outline.get("composition"):
+        parts.append(f"Composition: {script_outline['composition']}")
+    if script_outline.get("tagline"):
+        parts.append(f"Tagline: {script_outline['tagline']}")
+    # First content scene's narration gives drug class/category
+    if content_scenes:
+        first_narration = content_scenes[0].get("narration", "")
+        # Take first ~200 chars — enough for drug class and key context
+        snippet = first_narration[:200].rsplit(" ", 1)[0] if len(first_narration) > 200 else first_narration
+        parts.append(f"Drug overview: {snippet}")
+    drug_context = "\n".join(parts)
     user_prompt = IMAGE_PROMPT_USER_TEMPLATE.format(
-        pdf_content=pdf_text,
+        pdf_content=drug_context,
         script_outline=json.dumps(content_scenes, indent=2),
     )
 
