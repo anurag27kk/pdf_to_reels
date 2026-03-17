@@ -12,18 +12,18 @@ load_dotenv()
 
 from pipeline import PipelineConfig, run_pipeline
 
-BASE_DIR = Path(__file__).parent
-PDFS_DIR = BASE_DIR / "pdfs"
+BASE_DIR  = Path(__file__).parent
+PDFS_DIR  = BASE_DIR / "pdfs"
 DEMOS_DIR = BASE_DIR / "demos"
-SWISHX_LOGO = BASE_DIR / "assets" / "swishx_logo.png"
+LOGO_PATH = BASE_DIR / "assets" / "swishx_logo.png"
 
 DEMO_VIDEOS = [
-    {"file": "AllerDuo_intro.mp4",         "drug": "AllerDuo",     "topic": "Intro",           "composition": "Bilastine + Montelukast"},
-    {"file": "AllerDuo_mechanism.mp4",      "drug": "AllerDuo",     "topic": "Mechanism",       "composition": "Bilastine + Montelukast"},
-    {"file": "AllerDuo_dosage_safety.mp4",  "drug": "AllerDuo",     "topic": "Dosage & Safety", "composition": "Bilastine + Montelukast"},
-    {"file": "Tibrolin_intro.mp4",          "drug": "Tibrolin",     "topic": "Intro",           "composition": "Trypsin + Bromelain + Rutoside"},
-    {"file": "Subneuro-NT_intro.mp4",       "drug": "Subneuro-NT",  "topic": "Intro",           "composition": "Methylcobalamin + Pregabalin + Nortriptyline"},
-    {"file": "Rexulti_intro.mp4",           "drug": "Rexulti",      "topic": "Intro",           "composition": "Brexpiprazole"},
+    {"file": "AllerDuo_intro.mp4",        "drug": "AllerDuo",    "topic": "Intro",           "composition": "Bilastine + Montelukast"},
+    {"file": "AllerDuo_mechanism.mp4",     "drug": "AllerDuo",    "topic": "Mechanism",       "composition": "Bilastine + Montelukast"},
+    {"file": "AllerDuo_dosage_safety.mp4", "drug": "AllerDuo",    "topic": "Dosage & Safety", "composition": "Bilastine + Montelukast"},
+    {"file": "Tibrolin_intro.mp4",         "drug": "Tibrolin",    "topic": "Intro",           "composition": "Trypsin + Bromelain + Rutoside"},
+    {"file": "Subneuro-NT_intro.mp4",      "drug": "Subneuro-NT", "topic": "Intro",           "composition": "Methylcobalamin + Pregabalin + Nortriptyline"},
+    {"file": "Rexulti_intro.mp4",          "drug": "Rexulti",     "topic": "Intro",           "composition": "Brexpiprazole"},
 ]
 
 TOPIC_COLORS = {
@@ -35,7 +35,7 @@ TOPIC_COLORS = {
     "Side Effects":    "#db2777",
 }
 
-# ── Page config ──────────────────────────────────────────────────────────────
+# ── Page config ───────────────────────────────────────────────────────────────
 
 st.set_page_config(
     page_title="SwishX — Pharma AI Video Reels",
@@ -44,193 +44,267 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── CSS ──────────────────────────────────────────────────────────────────────
+# ── CSS ───────────────────────────────────────────────────────────────────────
 
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Inter:wght@400;500;600&display=swap');
 
-html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+/* ── Global ── */
+*, *::before, *::after { box-sizing: border-box; }
 
-/* Background */
-.stApp { background-color: #0d0d0d !important; }
+section[data-testid="stSidebar"]    { display: none !important; }
+div[data-testid="stToolbar"]        { display: none !important; }
+div[data-testid="stDecoration"]     { display: none !important; }
+div[data-testid="stStatusWidget"]   { display: none !important; }
+#MainMenu, footer, header           { visibility: hidden !important; }
 
-/* Hide Streamlit chrome */
-#MainMenu { visibility: hidden; }
-footer    { visibility: hidden; }
-header    { visibility: hidden; }
+.stApp,
+.stApp > div,
+div[data-testid="stAppViewContainer"],
+div[data-testid="stMain"],
+div[data-testid="stVerticalBlock"] {
+    background-color: #0d0d0d !important;
+}
+
+/* Block container max-width + padding */
+div[data-testid="stMainBlockContainer"] {
+    max-width: 1100px;
+    padding: 2rem 2rem 4rem;
+}
+
+/* Fonts — target Streamlit's actual rendered elements */
+div[data-testid="stMarkdownContainer"] p,
+div[data-testid="stMarkdownContainer"] li,
+label, .stSelectbox label, .stRadio label, .stCheckbox label {
+    font-family: 'Inter', sans-serif !important;
+}
 
 /* Scrollbar */
 ::-webkit-scrollbar       { width: 4px; }
-::-webkit-scrollbar-track { background: #111; }
+::-webkit-scrollbar-track { background: #0d0d0d; }
 ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
 
-/* Headings */
-h1, h2, h3, h4 { font-family: 'Montserrat', sans-serif !important; }
+/* ── Header ── */
+.swx-logo-text {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.7rem; font-weight: 900;
+    color: #fd4816; line-height: 1;
+    padding: 8px 0;
+}
+.swx-divider { border: none; border-top: 1px solid #1e1e1e; margin: 0.75rem 0 0; }
 
 /* ── Hero ── */
 .hero-eyebrow {
     font-family: 'Montserrat', sans-serif;
     font-size: 11px; font-weight: 700;
     letter-spacing: 3px; text-transform: uppercase;
-    color: #fd4816; margin-bottom: 14px;
+    color: #fd4816; margin-bottom: 16px;
 }
 .hero-title {
     font-family: 'Montserrat', sans-serif;
-    font-size: 2.8rem; font-weight: 900; line-height: 1.1;
-    color: #ffffff; margin: 0 0 14px 0;
+    font-size: 2.6rem; font-weight: 900; line-height: 1.1;
+    color: #fff; margin: 0 0 16px;
 }
 .hero-title .accent { color: #fd4816; }
-.hero-sub { font-size: 1rem; color: #777; line-height: 1.7; margin-bottom: 2rem; }
-
-/* ── Metrics strip ── */
-.metrics-strip {
-    display: flex; gap: 2.5rem;
-    padding: 1.5rem 0;
-    border-top: 1px solid #1c1c1c;
-    border-bottom: 1px solid #1c1c1c;
-    margin-bottom: 2rem;
+.hero-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem; color: #777; line-height: 1.7;
+    max-width: 560px;
 }
-.m-num  { font-family:'Montserrat',sans-serif; font-size:1.6rem; font-weight:900; color:#fd4816; line-height:1; }
-.m-desc { font-size:11px; color:#555; text-transform:uppercase; letter-spacing:.5px; margin-top:3px; }
 
-/* ── Divider ── */
-.swx-hr { border:none; border-top:1px solid #1c1c1c; margin:0; }
+/* ── Metrics ── */
+.metrics-row {
+    display: flex; flex-wrap: wrap; gap: 2rem;
+    padding: 1.4rem 0;
+    border-top: 1px solid #1e1e1e;
+    border-bottom: 1px solid #1e1e1e;
+    margin: 1.8rem 0 2.2rem;
+}
+.metric { min-width: 80px; }
+.metric-num  {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.5rem; font-weight: 900;
+    color: #fd4816; line-height: 1;
+}
+.metric-lbl {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px; color: #555;
+    text-transform: uppercase; letter-spacing: .6px;
+    margin-top: 4px;
+}
 
 /* ── Tabs ── */
-.stTabs [data-baseweb="tab-list"] {
-    background: transparent; gap: 0;
-    border-bottom: 1px solid #1c1c1c; padding: 0;
-}
-.stTabs [data-baseweb="tab"] {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600; font-size: 13px; color: #555;
-    background: transparent; border: none;
-    border-bottom: 2px solid transparent;
-    padding: 12px 24px;
-}
-.stTabs [aria-selected="true"] {
-    color: #ffffff !important;
-    border-bottom-color: #fd4816 !important;
+div[data-baseweb="tab-list"] {
     background: transparent !important;
+    border-bottom: 1px solid #1e1e1e !important;
+    gap: 0 !important;
 }
-.stTabs [data-baseweb="tab-panel"] { padding: 2rem 0 0 0; }
-
-/* ── Demo cards ── */
-.demo-meta {
-    background: #141414; border: 1px solid #1e1e1e;
-    border-radius: 10px 10px 0 0; padding: 12px 14px 10px;
+button[data-baseweb="tab"] {
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 600 !important; font-size: 13px !important;
+    color: #555 !important;
+    background: transparent !important;
+    border-bottom: 2px solid transparent !important;
+    padding: 10px 22px !important;
 }
-.demo-drug  { font-family:'Montserrat',sans-serif; font-weight:700; font-size:14px; color:#fff; }
-.demo-comp  { font-size:11px; color:#555; margin:2px 0 8px; }
-.t-badge    { display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:600; font-family:'Montserrat',sans-serif; }
+button[data-baseweb="tab"][aria-selected="true"] {
+    color: #fff !important;
+    border-bottom-color: #fd4816 !important;
+}
+div[data-baseweb="tab-panel"] { padding-top: 1.8rem !important; }
 
-/* ── Section labels ── */
-.sec-label {
+/* ── Section headings ── */
+.sec-head {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.25rem; font-weight: 700; color: #fff;
+    margin-bottom: 4px;
+}
+.sec-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px; color: #555; margin-bottom: 1.4rem;
+}
+
+/* ── Demo video cards ── */
+.video-label {
+    padding: 10px 2px 0;
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+}
+.video-drug {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700; font-size: 13px; color: #ddd;
+}
+.video-comp {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px; color: #555;
+    margin-top: 1px;
+}
+.t-badge {
+    display: inline-block; padding: 2px 9px;
+    border-radius: 20px; font-size: 11px; font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* ── Form section label ── */
+.form-label {
     font-family: 'Montserrat', sans-serif;
     font-size: 10px; font-weight: 700;
     text-transform: uppercase; letter-spacing: 2px;
-    color: #fd4816; margin-bottom: 10px;
+    color: #fd4816; margin-bottom: 8px; margin-top: 4px;
 }
-.sec-head { font-family:'Montserrat',sans-serif; font-weight:700; font-size:1.4rem; color:#fff; margin-bottom:4px; }
-.sec-sub  { font-size:13px; color:#666; margin-bottom:1.5rem; }
-
-/* ── Generate button ── */
-.stButton > button[kind="primary"] {
-    background: linear-gradient(135deg,#fd4816 0%,#d93d0f 100%) !important;
-    color: #fff !important; border: none !important;
-    font-family: 'Montserrat', sans-serif !important;
-    font-weight: 700 !important; font-size: 14px !important;
-    letter-spacing: .5px !important;
-    padding: 14px 32px !important; border-radius: 8px !important;
-    width: 100% !important; transition: opacity .2s !important;
-}
-.stButton > button[kind="primary"]:hover { opacity: .88 !important; }
-.stButton > button[kind="primary"]:disabled { opacity: .35 !important; }
 
 /* ── Inputs ── */
-.stSelectbox  [data-baseweb="select"] > div { background:#141414 !important; border-color:#2a2a2a !important; }
-.stTextArea   textarea                       { background:#141414 !important; border-color:#2a2a2a !important; color:#ccc !important; }
-.stFileUploader > div                        { background:#141414 !important; border-color:#2a2a2a !important; border-style:dashed !important; }
-.stRadio label                               { color:#aaa !important; }
+div[data-baseweb="select"] > div {
+    background-color: #141414 !important;
+    border-color: #2a2a2a !important;
+    color: #ddd !important;
+}
+div[data-baseweb="select"] svg { fill: #555 !important; }
+textarea {
+    background-color: #141414 !important;
+    border-color: #2a2a2a !important;
+    color: #ccc !important;
+}
+div[data-testid="stFileUploader"] > div {
+    background: #141414 !important;
+    border: 1px dashed #2a2a2a !important;
+    border-radius: 8px !important;
+}
+div[data-testid="stFileUploader"] p { color: #555 !important; }
+.stRadio > div { gap: 1rem !important; }
+.stRadio label p { color: #aaa !important; font-size: 14px !important; }
+.stCheckbox label p { color: #aaa !important; }
 
-/* ── Progress steps ── */
-.p-step { font-size:13px; padding:5px 0; }
-.p-step.waiting { color:#444; }
-.p-step.active  { color:#fd4816; }
-.p-step.done    { color:#22c55e; }
+/* ── Generate button ── */
+div[data-testid="stButton"] > button[kind="primary"] {
+    background: linear-gradient(135deg, #fd4816 0%, #d93d0f 100%) !important;
+    color: #fff !important; border: none !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 700 !important; font-size: 15px !important;
+    letter-spacing: .4px !important;
+    padding: 14px 32px !important;
+    border-radius: 8px !important;
+    transition: opacity .2s !important;
+}
+div[data-testid="stButton"] > button[kind="primary"]:hover   { opacity: .88 !important; }
+div[data-testid="stButton"] > button[kind="primary"]:disabled { opacity: .3 !important; cursor: not-allowed !important; }
 
 /* ── Download button ── */
-.stDownloadButton > button {
-    background: #141414 !important; color: #fd4816 !important;
-    border: 1px solid #fd4816 !important; border-radius: 8px !important;
-    font-family: 'Montserrat', sans-serif !important; font-weight: 600 !important;
+div[data-testid="stDownloadButton"] > button {
+    background: transparent !important;
+    color: #fd4816 !important;
+    border: 1px solid #fd4816 !important;
+    border-radius: 8px !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 600 !important;
     width: 100% !important;
 }
 
-/* ── Footer ── */
-.swx-footer { text-align:center; font-size:11px; color:#333; padding:3rem 0 1.5rem; letter-spacing:.5px; }
-.swx-footer .accent { color:#fd4816; }
+/* ── Progress ── */
+div[data-testid="stProgress"] > div > div {
+    background: #fd4816 !important;
+}
+div[data-testid="stProgress"] > div {
+    background: #1e1e1e !important;
+}
+
+.p-step         { font-family:'Inter',sans-serif; font-size:13px; padding:4px 0; }
+.p-step.waiting { color: #333; }
+.p-step.active  { color: #fd4816; }
+.p-step.done    { color: #22c55e; }
+
+/* ── Alerts ── */
+div[data-testid="stAlert"] { border-radius: 8px !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Header ───────────────────────────────────────────────────────────────────
+# ── Header ────────────────────────────────────────────────────────────────────
 
-hcol1, hcol2 = st.columns([6, 1])
-with hcol1:
-    if SWISHX_LOGO.exists():
-        st.image(str(SWISHX_LOGO), width=110)
+hcol, _ = st.columns([5, 1])
+with hcol:
+    if LOGO_PATH.exists():
+        st.image(str(LOGO_PATH), width=120)
     else:
-        st.markdown(
-            '<div style="font-family:Montserrat,sans-serif;font-size:1.6rem;'
-            'font-weight:900;color:#fd4816;padding:10px 0 6px;">SwishX</div>',
-            unsafe_allow_html=True,
-        )
-with hcol2:
-    st.markdown(
-        '<div style="text-align:right;padding-top:18px;font-size:10px;'
-        'color:#444;font-family:Montserrat,sans-serif;letter-spacing:1.5px;'
-        'text-transform:uppercase;">Pharma L&D</div>',
-        unsafe_allow_html=True,
-    )
+        st.markdown('<div class="swx-logo-text">SwishX</div>', unsafe_allow_html=True)
 
-st.markdown('<hr class="swx-hr">', unsafe_allow_html=True)
+st.markdown('<hr class="swx-divider">', unsafe_allow_html=True)
 
-# ── Hero ─────────────────────────────────────────────────────────────────────
+# ── Hero ──────────────────────────────────────────────────────────────────────
 
 st.markdown("""
-<div style="padding:2.5rem 0 1.5rem;">
-  <div class="hero-eyebrow">AI-Native Commercial Excellence · Pharma L&D</div>
+<div style="padding:2.2rem 0 0.5rem;">
+  <div class="hero-eyebrow">Pharma L&D · AI-Powered</div>
   <div class="hero-title">
     Turn any drug PDF into<br>a <span class="accent">60-second video reel</span>
   </div>
-  <div class="hero-sub">
-    Upload a pharmaceutical monograph — get a narrated educational video with<br>
-    quiz questions, gamification, and Indian English voiceover. Ready in minutes.
-  </div>
+  <p class="hero-sub">
+    Upload a pharmaceutical monograph — get a narrated, educational video
+    with quiz questions, gamification, and voiceover. Ready in minutes.
+  </p>
 </div>
 """, unsafe_allow_html=True)
 
 st.markdown("""
-<div class="metrics-strip">
-  <div><div class="m-num">60-120s</div><div class="m-desc">Reel length</div></div>
-  <div><div class="m-num">6</div><div class="m-desc">Topic types</div></div>
-  <div><div class="m-num">3</div><div class="m-desc">Audience profiles</div></div>
-  <div><div class="m-num">~$0.30</div><div class="m-desc">Per video</div></div>
-  <div><div class="m-num">8-12 min</div><div class="m-desc">Generation time</div></div>
+<div class="metrics-row">
+  <div class="metric"><div class="metric-num">60-120s</div><div class="metric-lbl">Reel length</div></div>
+  <div class="metric"><div class="metric-num">6</div><div class="metric-lbl">Topic types</div></div>
+  <div class="metric"><div class="metric-num">4</div><div class="metric-lbl">Profiles</div></div>
+  <div class="metric"><div class="metric-num">~$0.30</div><div class="metric-lbl">Per video</div></div>
+  <div class="metric"><div class="metric-num">~5 min</div><div class="metric-lbl">Generation time</div></div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Tabs ─────────────────────────────────────────────────────────────────────
+# ── Tabs ──────────────────────────────────────────────────────────────────────
 
 tab_demo, tab_gen = st.tabs(["▶  Watch Demos", "⚡  Generate New"])
 
 # ── Tab: Demo Gallery ─────────────────────────────────────────────────────────
 
 with tab_demo:
-    st.markdown('<div class="sec-head">Demo Gallery</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sec-head">Sample Reels</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="sec-sub">Pre-generated reels across 4 drugs · No API key required</div>',
+        '<div class="sec-sub">Pre-generated across 4 drugs and multiple topic types</div>',
         unsafe_allow_html=True,
     )
 
@@ -241,40 +315,44 @@ with tab_demo:
             continue
         color = TOPIC_COLORS.get(demo["topic"], "#fd4816")
         with cols[i % 3]:
-            st.markdown(f"""
-            <div class="demo-meta">
-              <div class="demo-drug">{demo["drug"]}</div>
-              <div class="demo-comp">{demo["composition"]}</div>
-              <span class="t-badge" style="background:{color}1a;color:{color};border:1px solid {color}40;">{demo["topic"]}</span>
-            </div>
-            """, unsafe_allow_html=True)
             st.video(str(video_path))
-            st.markdown("<div style='height:1.2rem'></div>", unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="video-label">
+              <span class="t-badge" style="background:{color}1a;color:{color};border:1px solid {color}44;">{demo["topic"]}</span>
+              <div>
+                <div class="video-drug">{demo["drug"]}</div>
+                <div class="video-comp">{demo["composition"]}</div>
+              </div>
+            </div>
+            <div style="height:1.6rem;"></div>
+            """, unsafe_allow_html=True)
 
 # ── Tab: Generate ─────────────────────────────────────────────────────────────
 
 with tab_gen:
     st.markdown('<div class="sec-head">Generate a New Reel</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="sec-sub">Upload a drug PDF and configure your reel · Requires API keys in environment</div>',
+        '<div class="sec-sub">Upload a drug PDF, configure your reel, and generate in ~5 minutes</div>',
         unsafe_allow_html=True,
     )
 
     left, right = st.columns([1, 1], gap="large")
 
     with left:
-        st.markdown('<div class="sec-label">① PDF Source</div>', unsafe_allow_html=True)
+        st.markdown('<div class="form-label">① PDF</div>', unsafe_allow_html=True)
         existing_pdfs = (
             sorted(PDFS_DIR.glob("*.pdf")) + sorted(PDFS_DIR.glob("*.PDF"))
             if PDFS_DIR.exists() else []
         )
         pdf_source = st.radio(
-            "PDF source", ["Upload new PDF", "Use a sample"],
+            "source", ["Upload new", "Use a sample"],
             horizontal=True, label_visibility="collapsed",
         )
         pdf_path = None
-        if pdf_source == "Upload new PDF":
-            uploaded = st.file_uploader("Drop PDF here", type=["pdf"], label_visibility="collapsed")
+        if pdf_source == "Upload new":
+            uploaded = st.file_uploader(
+                "pdf", type=["pdf"], label_visibility="collapsed",
+            )
             if uploaded:
                 PDFS_DIR.mkdir(exist_ok=True)
                 save_path = PDFS_DIR / uploaded.name
@@ -284,27 +362,28 @@ with tab_gen:
         else:
             if existing_pdfs:
                 selected = st.selectbox(
-                    "Sample", existing_pdfs,
+                    "sample", existing_pdfs,
                     format_func=lambda p: p.stem,
                     label_visibility="collapsed",
                 )
                 pdf_path = str(selected)
             else:
-                st.warning("No sample PDFs found in pdfs/")
+                st.info("No sample PDFs available")
 
-        st.markdown("<div style='height:1.2rem'></div>", unsafe_allow_html=True)
-        st.markdown('<div class="sec-label">③ Creative Direction (optional)</div>', unsafe_allow_html=True)
+        st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+        st.markdown('<div class="form-label">③ Focus (optional)</div>', unsafe_allow_html=True)
         guidance = st.text_area(
-            "Direction", label_visibility="collapsed",
-            placeholder="e.g. Focus on how this helps elderly patients manage chronic pain",
-            height=100,
+            "focus", label_visibility="collapsed",
+            placeholder="e.g. Emphasise pain relief for elderly patients",
+            height=90,
         )
 
     with right:
-        st.markdown('<div class="sec-label">② Settings</div>', unsafe_allow_html=True)
+        st.markdown('<div class="form-label">② Settings</div>', unsafe_allow_html=True)
 
         profile = st.selectbox(
-            "Audience Profile", ["sales_executive", "stockist", "retailer", "doctor", "all"],
+            "Audience",
+            ["sales_executive", "stockist", "retailer", "doctor", "all"],
             format_func=lambda x: {
                 "sales_executive": "🤝  Sales Executive (MR)",
                 "stockist":        "📦  Stockist",
@@ -314,7 +393,8 @@ with tab_gen:
             }[x],
         )
         topic = st.selectbox(
-            "Topic", ["intro", "indications", "mechanism", "dosage_safety", "interactions", "side_effects"],
+            "Topic",
+            ["intro", "indications", "mechanism", "dosage_safety", "interactions", "side_effects"],
             format_func=lambda x: {
                 "intro":         "Intro",
                 "indications":   "Indications",
@@ -332,18 +412,10 @@ with tab_gen:
             "Jeevan — Expressive":         "jeevan",
         }
         voice = voice_map[st.selectbox("Voice", list(voice_map.keys()))]
-        tts = st.selectbox(
-            "TTS Engine", ["elevenlabs", "gemini"],
-            format_func=lambda x: {
-                "elevenlabs": "ElevenLabs  (recommended)",
-                "gemini":     "Gemini TTS",
-            }[x],
-        )
         include_quiz = st.checkbox("Include quiz + gamification", value=True)
         mode = "demo" if include_quiz else "production"
 
-    st.markdown("<div style='height:.5rem'></div>", unsafe_allow_html=True)
-
+    st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
     generate = st.button(
         "⚡  Generate Video Reel",
         type="primary",
@@ -357,23 +429,23 @@ with tab_gen:
             profile=profile,
             topic=topic,
             voice=voice,
-            tts=tts,
+            tts="elevenlabs",
             mode=mode,
             guidance=guidance,
         )
 
         steps = {
-            "extract":   "Extract text from PDF",
-            "analyze":   "Analyse content structure",
-            "script":    "Generate script with Claude",
-            "media":     "Generate frames + voiceover",
-            "stitch":    "Stitch video",
-            "subtitles": "Burn subtitles",
+            "extract":   "Extracting text",
+            "analyze":   "Analysing content",
+            "script":    "Writing script",
+            "media":     "Generating visuals + audio",
+            "stitch":    "Stitching video",
+            "subtitles": "Adding subtitles",
         }
 
-        st.markdown("<div style='height:.8rem'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
         progress_bar = st.progress(0)
-        st.markdown("<div style='height:.4rem'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:.3rem'></div>", unsafe_allow_html=True)
 
         scol1, scol2 = st.columns(2)
         step_statuses = {}
@@ -394,7 +466,8 @@ with tab_gen:
                 elapsed = time.time() - step_start[0]
                 lbl = steps.get(current_step[0], current_step[0])
                 step_statuses[current_step[0]].markdown(
-                    f'<div class="p-step done">✓ {lbl} <span style="color:#333;font-size:11px">({elapsed:.0f}s)</span></div>',
+                    f'<div class="p-step done">✓ {lbl}'
+                    f'<span style="color:#2a2a2a;font-size:11px;margin-left:6px">({elapsed:.0f}s)</span></div>',
                     unsafe_allow_html=True,
                 )
             current_step[0] = step
@@ -409,27 +482,26 @@ with tab_gen:
 
         result = run_pipeline(config, on_progress=on_progress)
 
-        # Finalise last step
         if current_step[0] and current_step[0] in step_statuses:
             elapsed = time.time() - step_start[0]
             lbl = steps.get(current_step[0], current_step[0])
             step_statuses[current_step[0]].markdown(
-                f'<div class="p-step done">✓ {lbl} <span style="color:#333;font-size:11px">({elapsed:.0f}s)</span></div>',
+                f'<div class="p-step done">✓ {lbl}'
+                f'<span style="color:#2a2a2a;font-size:11px;margin-left:6px">({elapsed:.0f}s)</span></div>',
                 unsafe_allow_html=True,
             )
         progress_bar.progress(1.0)
 
-        st.markdown('<hr class="swx-hr" style="margin:1.5rem 0;">', unsafe_allow_html=True)
+        st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
 
         if result.get("error"):
-            st.error(f"Pipeline error: {result['error']}")
+            st.error(f"Something went wrong: {result['error']}")
         elif result.get("video_path") and os.path.exists(result["video_path"]):
-            st.success(f"✓ Generated in {result['duration']:.0f}s")
+            st.success(f"✓ Reel generated in {result['duration']:.0f}s")
             st.video(result["video_path"])
-            vid_bytes = Path(result["video_path"]).read_bytes()
             st.download_button(
                 "⬇  Download MP4",
-                data=vid_bytes,
+                data=Path(result["video_path"]).read_bytes(),
                 file_name=Path(result["video_path"]).name,
                 mime="video/mp4",
             )
@@ -439,8 +511,8 @@ with tab_gen:
 # ── Footer ────────────────────────────────────────────────────────────────────
 
 st.markdown("""
-<div class="swx-footer">
-  Claude · Gemini · ElevenLabs · FFmpeg &nbsp;·&nbsp;
-  <span class="accent">SwishX</span> © 2026
+<div style="text-align:center;padding:3rem 0 1rem;font-size:11px;color:#2a2a2a;
+            font-family:'Montserrat',sans-serif;letter-spacing:.5px;">
+  SwishX © 2026
 </div>
 """, unsafe_allow_html=True)
