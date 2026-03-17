@@ -260,8 +260,19 @@ div[data-testid="stProgress"] > div {
 
 .p-step         { font-family:'Inter',sans-serif; font-size:13px; padding:4px 0; }
 .p-step.waiting { color: #333; }
-.p-step.active  { color: #fd4816; }
+.p-step.active  { color: #fd4816; animation: stepPulse 1.8s ease-in-out infinite; }
 .p-step.done    { color: #22c55e; }
+
+@keyframes stepPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+.spin-dot { display:inline-block; animation: spinPulse 2s ease-in-out infinite; }
+@keyframes spinPulse {
+  0%, 100% { transform: scale(1);   opacity: 1; }
+  50%       { transform: scale(1.2); opacity: 0.7; }
+}
 
 /* ── Alerts ── */
 div[data-testid="stAlert"] { border-radius: 8px !important; }
@@ -443,22 +454,32 @@ with tab_gen:
             guidance=guidance,
         )
 
-        steps = {
-            "extract":   "Extracting text",
-            "analyze":   "Analysing content",
-            "script":    "Writing script",
-            "media":     "Generating visuals + audio",
-            "stitch":    "Stitching video",
-            "subtitles": "Adding subtitles",
+        # Step metadata: label, description, estimated seconds remaining AFTER this step starts
+        STEP_META = {
+            "extract":   ("Reading your PDF",           "Pulling out all text, drug names, and data from the document…",          270),
+            "analyze":   ("Understanding the content",  "Mapping indications, mechanism, dosage, and safety data…",               250),
+            "script":    ("Writing the script",         "Crafting a narrative tailored to your audience and topic…",              205),
+            "media":     ("Bringing it to life",        "Generating scene visuals and recording the voiceover — this is the longest step…", 55),
+            "stitch":    ("Assembling the video",       "Combining all scenes, transitions, audio, and logo…",                    20),
+            "subtitles": ("Almost there!",              "Adding subtitles and putting the final touches on your reel…",           10),
         }
+        STEP_ORDER = list(STEP_META.keys())
+
+        st.markdown("<div style='height:.8rem'></div>", unsafe_allow_html=True)
+
+        # ── Live status card ──
+        status_box = st.empty()
+
+        # ── Progress bar ──
+        progress_bar = st.progress(0)
 
         st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
-        progress_bar = st.progress(0)
-        st.markdown("<div style='height:.3rem'></div>", unsafe_allow_html=True)
 
+        # ── Step checklist ──
         scol1, scol2 = st.columns(2)
         step_statuses = {}
-        for j, (key, label) in enumerate(steps.items()):
+        for j, key in enumerate(STEP_ORDER):
+            label = STEP_META[key][0]
             col = scol1 if j < 3 else scol2
             with col:
                 step_statuses[key] = st.empty()
@@ -467,39 +488,111 @@ with tab_gen:
                     unsafe_allow_html=True,
                 )
 
+        run_start    = time.time()
         current_step = [None]
         step_start   = [time.time()]
 
+        def _fmt_time(seconds: float) -> str:
+            seconds = max(0, int(seconds))
+            if seconds < 60:
+                return f"{seconds}s"
+            return f"{seconds // 60}m {seconds % 60:02d}s"
+
+        def _render_status_box(step: str, pct: float):
+            label, desc, est_remaining = STEP_META.get(step, (step, "", 0))
+            elapsed = time.time() - run_start
+            pct_int = int(min(pct, 1.0) * 100)
+            status_box.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #1a1a1a 0%, #141414 100%);
+                border: 1px solid #2a2a2a;
+                border-left: 3px solid #fd4816;
+                border-radius: 10px;
+                padding: 1.2rem 1.4rem;
+                margin-bottom: .4rem;
+            ">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:.5rem;">
+                <div>
+                  <div style="font-family:'Montserrat',sans-serif; font-weight:700; font-size:1rem; color:#fff; margin-bottom:5px;">
+                    <span class="spin-dot">⏳</span>&nbsp; {label}
+                  </div>
+                  <div style="font-family:'Inter',sans-serif; font-size:13px; color:#777; max-width:480px;">
+                    {desc}
+                  </div>
+                </div>
+                <div style="text-align:right; flex-shrink:0;">
+                  <div style="font-family:'Montserrat',sans-serif; font-weight:700; font-size:1.1rem; color:#fd4816;">
+                    {pct_int}%
+                  </div>
+                  <div style="font-family:'Inter',sans-serif; font-size:11px; color:#444; margin-top:2px;">
+                    {_fmt_time(elapsed)} elapsed
+                  </div>
+                  <div style="font-family:'Inter',sans-serif; font-size:11px; color:#444; margin-top:1px;">
+                    ~{_fmt_time(est_remaining)} remaining
+                  </div>
+                </div>
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
+
         def on_progress(step: str, message: str, pct: float):
+            # Mark previous step done
             if current_step[0] and current_step[0] != step and current_step[0] in step_statuses:
                 elapsed = time.time() - step_start[0]
-                lbl = steps.get(current_step[0], current_step[0])
+                lbl = STEP_META.get(current_step[0], (current_step[0],))[0]
                 step_statuses[current_step[0]].markdown(
                     f'<div class="p-step done">✓ {lbl}'
-                    f'<span style="color:#2a2a2a;font-size:11px;margin-left:6px">({elapsed:.0f}s)</span></div>',
+                    f'<span style="color:#333;font-size:11px;margin-left:6px">({_fmt_time(elapsed)})</span></div>',
                     unsafe_allow_html=True,
                 )
             current_step[0] = step
             step_start[0]   = time.time()
             progress_bar.progress(min(pct, 1.0))
+            # Mark current step active in checklist
             if step in step_statuses:
-                lbl = steps.get(step, step)
+                lbl = STEP_META.get(step, (step,))[0]
                 step_statuses[step].markdown(
-                    f'<div class="p-step active">⟳ {lbl}…</div>',
+                    f'<div class="p-step active">⟳ {lbl}</div>',
                     unsafe_allow_html=True,
                 )
+            # Update big status card
+            _render_status_box(step, pct)
 
         result = run_pipeline(config, on_progress=on_progress)
 
+        # Finalise last step
         if current_step[0] and current_step[0] in step_statuses:
             elapsed = time.time() - step_start[0]
-            lbl = steps.get(current_step[0], current_step[0])
+            lbl = STEP_META.get(current_step[0], (current_step[0],))[0]
             step_statuses[current_step[0]].markdown(
                 f'<div class="p-step done">✓ {lbl}'
-                f'<span style="color:#2a2a2a;font-size:11px;margin-left:6px">({elapsed:.0f}s)</span></div>',
+                f'<span style="color:#333;font-size:11px;margin-left:6px">({_fmt_time(elapsed)})</span></div>',
                 unsafe_allow_html=True,
             )
         progress_bar.progress(1.0)
+        total_elapsed = time.time() - run_start
+        status_box.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #0d1f12 0%, #0a1a0e 100%);
+            border: 1px solid #1a3a20;
+            border-left: 3px solid #22c55e;
+            border-radius: 10px;
+            padding: 1.2rem 1.4rem;
+            margin-bottom: .4rem;
+        ">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem;">
+            <div>
+              <div style="font-family:'Montserrat',sans-serif; font-weight:700; font-size:1rem; color:#22c55e; margin-bottom:4px;">
+                ✓ &nbsp;Your reel is ready
+              </div>
+              <div style="font-family:'Inter',sans-serif; font-size:13px; color:#555;">
+                Generated in {_fmt_time(total_elapsed)} · scroll down to watch and download
+              </div>
+            </div>
+            <div style="font-family:'Montserrat',sans-serif; font-weight:700; font-size:1.1rem; color:#22c55e;">100%</div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
 
         st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
 
