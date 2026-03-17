@@ -63,6 +63,7 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Inter:wght@400;500;600&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; }
+html, body, [data-testid="stAppViewContainer"] { scroll-behavior: smooth !important; }
 
 /* ── Reset Streamlit chrome ── */
 section[data-testid="stSidebar"]  { display: none !important; }
@@ -425,14 +426,14 @@ with hero_right:
             for b in imgs_b64
         )
         st.markdown(f"""
-        <div style="display:flex; justify-content:center; padding-top:0.5rem;">
-          <div class="phone-mockup">
+        <a href="#demo-reels" style="text-decoration:none; display:flex; justify-content:center; padding-top:0.5rem;">
+          <div class="phone-mockup" style="cursor:pointer;">
             <div class="phone-screen">
               {slide_tags}
               <div class="play-btn"></div>
             </div>
           </div>
-        </div>
+        </a>
         """, unsafe_allow_html=True)
 
 
@@ -475,7 +476,7 @@ for i, (icon, title, desc) in enumerate(FEATURES):
 # SAMPLE REELS
 # ══════════════════════════════════════════════════════════════════════════════
 
-st.markdown('<hr class="section-rule">', unsafe_allow_html=True)
+st.markdown('<hr class="section-rule" id="demo-reels">', unsafe_allow_html=True)
 st.markdown('<div class="s-eyebrow">See it in action</div>', unsafe_allow_html=True)
 st.markdown('<div class="s-title">Sample reels across 4 drugs</div>', unsafe_allow_html=True)
 st.markdown(
