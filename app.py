@@ -10,6 +10,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# On Streamlit Cloud, secrets are in st.secrets — inject into env so pipeline picks them up
+try:
+    import streamlit as _st
+    for _key in ["ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "ELEVENLABS_API_KEY"]:
+        if _key in _st.secrets and not os.environ.get(_key):
+            os.environ[_key] = _st.secrets[_key]
+except Exception:
+    pass
+
 from pipeline import PipelineConfig, run_pipeline
 
 BASE_DIR  = Path(__file__).parent
