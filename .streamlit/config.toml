@@ -1,5 +1,7 @@
 [server]
 maxUploadSize = 50
+maxMessageSize = 400
+enableWebsocketCompression = true
 
 [theme]
 base                     = "dark"

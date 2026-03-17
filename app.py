@@ -31,11 +31,11 @@ HERO_FRAME  = BASE_DIR / "assets" / "hero_frame.jpg"
 
 DEMO_VIDEOS = [
     {"file": "AllerDuo_intro.mp4",        "drug": "AllerDuo",    "topic": "Intro",           "composition": "Bilastine + Montelukast"},
+    {"file": "Tibrolin_intro.mp4",         "drug": "Tibrolin",    "topic": "Intro",           "composition": "Trypsin + Bromelain + Rutoside"},
+    {"file": "Rexulti_intro.mp4",          "drug": "Rexulti",     "topic": "Intro",           "composition": "Brexpiprazole"},
+    {"file": "Subneuro-NT_intro.mp4",      "drug": "Subneuro-NT", "topic": "Intro",           "composition": "Methylcobalamin + Pregabalin + Nortriptyline"},
     {"file": "AllerDuo_mechanism.mp4",     "drug": "AllerDuo",    "topic": "Mechanism",       "composition": "Bilastine + Montelukast"},
     {"file": "AllerDuo_dosage_safety.mp4", "drug": "AllerDuo",    "topic": "Dosage & Safety", "composition": "Bilastine + Montelukast"},
-    {"file": "Tibrolin_intro.mp4",         "drug": "Tibrolin",    "topic": "Intro",           "composition": "Trypsin + Bromelain + Rutoside"},
-    {"file": "Subneuro-NT_intro.mp4",      "drug": "Subneuro-NT", "topic": "Intro",           "composition": "Methylcobalamin + Pregabalin + Nortriptyline"},
-    {"file": "Rexulti_intro.mp4",          "drug": "Rexulti",     "topic": "Intro",           "composition": "Brexpiprazole"},
 ]
 
 TOPIC_COLORS = {
@@ -318,6 +318,36 @@ div[data-testid="stProgress"] > div       { background: #1a1a1a !important; }
   50%     { transform:scale(1.15); opacity:.65; }
 }
 
+
+
+/* ── Loading skeleton ── */
+.video-skeleton {
+    background: #111;
+    border: 1px solid #1a1a1a;
+    border-radius: 12px;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: skeletonPulse 2.5s ease-in-out infinite;
+}
+.video-skeleton .skeleton-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+.video-skeleton .skeleton-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #444;
+}
+@keyframes skeletonPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
 /* ── Alerts ── */
 div[data-testid="stAlert"] { border-radius: 8px !important; }
 
@@ -479,6 +509,13 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+if "generating" not in st.session_state:
+    st.session_state.generating = False
+if "pipeline_result" not in st.session_state:
+    st.session_state.pipeline_result = None
+
+is_generating = st.session_state.generating
+
 left, right = st.columns([1, 1], gap="large")
 
 with left:
@@ -490,10 +527,11 @@ with left:
     pdf_source = st.radio(
         "source", ["Upload new", "Use a sample"],
         horizontal=True, label_visibility="collapsed",
+        disabled=is_generating,
     )
     pdf_path = None
     if pdf_source == "Upload new":
-        uploaded = st.file_uploader("pdf", type=["pdf"], label_visibility="collapsed")
+        uploaded = st.file_uploader("pdf", type=["pdf"], label_visibility="collapsed", disabled=is_generating)
         if uploaded:
             PDFS_DIR.mkdir(exist_ok=True)
             save_path = PDFS_DIR / uploaded.name
@@ -506,6 +544,7 @@ with left:
                 "sample", existing_pdfs,
                 format_func=lambda p: p.stem,
                 label_visibility="collapsed",
+                disabled=is_generating,
             )
             pdf_path = str(selected)
         else:
@@ -517,6 +556,7 @@ with left:
         "focus", label_visibility="collapsed",
         placeholder="e.g. Emphasise pain relief for elderly patients",
         height=80,
+        disabled=is_generating,
     )
 
 with right:
@@ -532,6 +572,7 @@ with right:
             "doctor":          "👨‍⚕️  Doctor",
             "all":             "👥  All Profiles",
         }[x],
+        disabled=is_generating,
     )
     topic = st.selectbox(
         "Topic",
@@ -544,6 +585,7 @@ with right:
             "interactions":  "Drug Interactions",
             "side_effects":  "Side Effects",
         }[x],
+        disabled=is_generating,
     )
     voice_map = {
         "Gaurav — Professional, Calm": "gaurav",
@@ -552,12 +594,11 @@ with right:
         "Ruhaan — Clear, Cheerful":    "ruhaan",
         "Jeevan — Expressive":         "jeevan",
     }
-    voice = voice_map[st.selectbox("Voice", list(voice_map.keys()))]
-    include_quiz = st.checkbox("Include quiz + gamification", value=True)
+    voice = voice_map[st.selectbox("Voice", list(voice_map.keys()), disabled=is_generating)]
+    include_quiz = st.checkbox("Include quiz + gamification", value=True, disabled=is_generating)
     mode = "demo" if include_quiz else "production"
 
 st.markdown("<div style='height:.5rem'></div>", unsafe_allow_html=True)
-is_generating = st.session_state.get("generating", False)
 generate = st.button(
     "⚡  Generating…" if is_generating else "⚡  Generate Video Reel",
     type="primary",
@@ -565,9 +606,9 @@ generate = st.button(
     use_container_width=True,
 )
 
-if generate:
-    st.session_state["generating"] = True
-    config = PipelineConfig(
+if generate and not is_generating:
+    st.session_state.generating = True
+    st.session_state.pipeline_config = dict(
         pdf_path=pdf_path,
         profile=profile,
         topic=topic,
@@ -576,32 +617,49 @@ if generate:
         mode=mode,
         guidance=guidance,
     )
+    st.rerun()
 
+if is_generating:
+    config = PipelineConfig(**st.session_state.pipeline_config)
+
+    TOTAL_ESTIMATE = 330  # ~5.5 min total pipeline
     STEP_META = {
-        "extract":   ("Reading your PDF",          "Extracting all text, drug names, and data from the document…",                        270),
-        "analyze":   ("Understanding the content",  "Mapping indications, mechanism, dosage, and safety data…",                           250),
-        "script":    ("Writing the script",         "Crafting a narrative tailored to your audience and topic…",                          205),
-        "media":     ("Bringing it to life",        "Generating visuals for each scene and recording the voiceover — the longest step…",  55),
-        "stitch":    ("Assembling the video",       "Combining scenes, transitions, audio, and branding…",                                20),
-        "subtitles": ("Final touches",              "Adding subtitles and polishing the reel…",                                           10),
+        "extract":   ("Reading your PDF",          "Extracting all text, drug names, and data from the document…"),
+        "analyze":   ("Understanding the content",  "Mapping indications, mechanism, dosage, and safety data…"),
+        "script":    ("Writing the script",         "Crafting a narrative tailored to your audience and topic…"),
+        "media":     ("Bringing it to life",        "Generating visuals for each scene and recording the voiceover — the longest step…"),
+        "stitch":    ("Assembling the video",       "Combining scenes, transitions, audio, and branding…"),
+        "subtitles": ("Final touches",              "Adding subtitles and polishing the reel…"),
     }
     STEP_ORDER = list(STEP_META.keys())
 
     st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
-    status_box   = st.empty()
-    progress_bar = st.progress(0)
-    st.markdown("<div style='height:.5rem'></div>", unsafe_allow_html=True)
+    out_left, out_right = st.columns([1.2, 1], gap="large")
 
-    scol1, scol2 = st.columns(2)
-    step_ui = {}
-    for j, key in enumerate(STEP_ORDER):
-        col = scol1 if j < 3 else scol2
-        with col:
-            step_ui[key] = st.empty()
-            step_ui[key].markdown(
-                f'<div class="p-step waiting">· {STEP_META[key][0]}</div>',
-                unsafe_allow_html=True,
-            )
+    with out_left:
+        video_area = st.empty()
+        video_area.markdown("""
+        <div class="video-skeleton">
+          <div class="skeleton-icon">🎬</div>
+          <div class="skeleton-text">Your reel is being crafted…</div>
+        </div>
+        """, unsafe_allow_html=True)
+        download_area = st.empty()
+
+    with out_right:
+        status_box = st.empty()
+        progress_bar = st.progress(0)
+        st.markdown("<div style='height:.5rem'></div>", unsafe_allow_html=True)
+        scol1, scol2 = st.columns(2)
+        step_ui = {}
+        for j, key in enumerate(STEP_ORDER):
+            col = scol1 if j < 3 else scol2
+            with col:
+                step_ui[key] = st.empty()
+                step_ui[key].markdown(
+                    f'<div class="p-step waiting">· {STEP_META[key][0]}</div>',
+                    unsafe_allow_html=True,
+                )
 
     run_start    = time.time()
     cur_step     = [None]
@@ -611,9 +669,12 @@ if generate:
         s = max(0, int(s))
         return f"{s}s" if s < 60 else f"{s // 60}m {s % 60:02d}s"
 
-    def _render_status(step, pct):
-        label, desc, est = STEP_META.get(step, (step, "", 0))
+    def _render_status(step, pct, message=""):
+        meta = STEP_META.get(step, (step, ""))
+        label = meta[0]
+        desc = message if message else meta[1]
         elapsed = time.time() - run_start
+        remaining = max(0, TOTAL_ESTIMATE - elapsed)
         pct_i = int(min(pct, 1.0) * 100)
         status_box.markdown(f"""
         <div style="background:#111; border:1px solid #1e1e1e; border-left:3px solid #fd4816;
@@ -630,7 +691,7 @@ if generate:
             <div style="text-align:right; flex-shrink:0;">
               <div style="font-family:'Montserrat',sans-serif; font-weight:700; font-size:1.1rem; color:#fd4816;">{pct_i}%</div>
               <div style="font-family:'Inter',sans-serif; font-size:11px; color:#333; margin-top:2px;">{_ft(elapsed)} elapsed</div>
-              <div style="font-family:'Inter',sans-serif; font-size:11px; color:#333; margin-top:1px;">~{_ft(est)} remaining</div>
+              <div style="font-family:'Inter',sans-serif; font-size:11px; color:#333; margin-top:1px;">~{_ft(remaining)} remaining</div>
             </div>
           </div>
         </div>
@@ -644,19 +705,20 @@ if generate:
                 f'<div class="p-step done">✓ {lbl} <span style="color:#222;font-size:11px">({_ft(el)})</span></div>',
                 unsafe_allow_html=True,
             )
-        cur_step[0]   = step
-        step_start[0] = time.time()
+        if cur_step[0] != step:
+            step_start[0] = time.time()
+        cur_step[0] = step
         progress_bar.progress(min(pct, 1.0))
         if step in step_ui:
             step_ui[step].markdown(
                 f'<div class="p-step active">⟳ {STEP_META.get(step, (step,))[0]}</div>',
                 unsafe_allow_html=True,
             )
-        _render_status(step, pct)
+        _render_status(step, pct, message)
 
     result = run_pipeline(config, on_progress=on_progress)
 
-    # Finalise
+    # Finalise progress
     if cur_step[0] and cur_step[0] in step_ui:
         el = time.time() - step_start[0]
         lbl = STEP_META.get(cur_step[0], (cur_step[0],))[0]
@@ -684,21 +746,59 @@ if generate:
     </div>
     """, unsafe_allow_html=True)
 
-    st.session_state["generating"] = False
-    st.markdown("<div style='height:.8rem'></div>", unsafe_allow_html=True)
+    st.session_state.generating = False
+    st.session_state.pipeline_result = result
 
     if result.get("error"):
-        st.error(f"Something went wrong: {result['error']}")
+        video_area.error(f"Something went wrong: {result['error']}")
     elif result.get("video_path") and os.path.exists(result["video_path"]):
-        st.video(result["video_path"])
-        st.download_button(
+        vid_bytes = Path(result["video_path"]).read_bytes()
+        vid_b64 = base64.b64encode(vid_bytes).decode()
+        video_area.markdown(
+            f'<video controls style="max-height:420px;width:auto;display:block;margin:0 auto;border-radius:8px;">'
+            f'<source src="data:video/mp4;base64,{vid_b64}" type="video/mp4"></video>',
+            unsafe_allow_html=True,
+        )
+        download_area.download_button(
             "⬇  Download MP4",
-            data=Path(result["video_path"]).read_bytes(),
+            data=vid_bytes,
             file_name=Path(result["video_path"]).name,
             mime="video/mp4",
         )
     else:
-        st.error("Generation completed but no video was produced.")
+        video_area.error("Generation completed but no video was produced.")
+
+elif st.session_state.pipeline_result is not None:
+    result = st.session_state.pipeline_result
+    if result.get("video_path") and os.path.exists(result["video_path"]):
+        st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
+        out_left, out_right = st.columns([1.2, 1], gap="large")
+        with out_left:
+            vid_bytes = Path(result["video_path"]).read_bytes()
+            vid_b64 = base64.b64encode(vid_bytes).decode()
+            st.markdown(
+                f'<video controls style="max-height:420px;width:auto;display:block;margin:0 auto;border-radius:8px;">'
+                f'<source src="data:video/mp4;base64,{vid_b64}" type="video/mp4"></video>',
+                unsafe_allow_html=True,
+            )
+            st.download_button(
+                "⬇  Download MP4",
+                data=vid_bytes,
+                file_name=Path(result["video_path"]).name,
+                mime="video/mp4",
+            )
+        with out_right:
+            st.markdown("""
+            <div style="background:#0a150d; border:1px solid #153020; border-left:3px solid #22c55e;
+                        border-radius:10px; padding:1.1rem 1.3rem;">
+              <div style="font-family:'Montserrat',sans-serif; font-weight:700; font-size:15px; color:#22c55e; margin-bottom:3px;">
+                ✓ &nbsp;Your reel is ready
+              </div>
+              <div style="font-family:'Inter',sans-serif; font-size:13px; color:#444;">
+                Download or generate another reel above.
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════

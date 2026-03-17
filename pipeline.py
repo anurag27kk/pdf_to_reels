@@ -120,7 +120,7 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
             pdf_text = txt_path.read_text()
 
         # --- Step 3: Voice + Pillow templates + (image prompts → AI frames) in parallel ---
-        on_progress("media", "Generating voiceover + frames...", 0.40)
+        on_progress("media", "Starting visual and audio generation...", 0.40)
         frames_manifest = OUTPUT_DIR / f"{base_name}_{config.profile}_{config.topic}_script_frames.json"
         audio_path = OUTPUT_DIR / f"{base_name}_{config.profile}_{config.topic}_script_{config.voice}.mp3"
         durations_path = OUTPUT_DIR / f"{base_name}_{config.profile}_{config.topic}_script_durations.json"
@@ -181,6 +181,8 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
                     path = render_content_fallback(scene, filename)
                 results[scene_num] = (path, None)
 
+            on_progress("media", f"Rendered {len(template_scenes)} template frames — generating image descriptions...", 0.44)
+
             # Phase 2: Generate image prompts, then AI frames
             if ai_scenes:
                 print("  Phase 2: Generating image prompts...")
@@ -223,10 +225,12 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
 
                 # Generate AI frames with Gemini
                 if ai_scenes:
-                    print("  Phase 2: Generating AI frames...")
+                    on_progress("media", f"Generating {len(ai_scenes)} AI frames with Gemini...", 0.50)
                     api_key = os.environ.get("GOOGLE_API_KEY")
                     client = genai.Client(api_key=api_key)
                     max_workers = min(len(ai_scenes), 4)
+                    ai_done = [0]
+                    ai_total = len(ai_scenes)
 
                     def _gen_one(scene_and_file):
                         scene, filename = scene_and_file
@@ -244,6 +248,9 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
                         for future in as_completed(futures):
                             sn, path, err = future.result()
                             results[sn] = (path, err)
+                            ai_done[0] += 1
+                            frame_pct = 0.50 + (ai_done[0] / ai_total) * 0.15
+                            on_progress("media", f"Generated frame {ai_done[0]}/{ai_total}...", frame_pct)
 
             # Assemble manifest
             frame_paths = []
@@ -278,6 +285,7 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
             _gen_frames_two_phase()
 
         if voice_future:
+            on_progress("media", "Waiting for voiceover to finish...", 0.67)
             voice_future.result()
             voice_pool.shutdown(wait=False)
 
