@@ -443,14 +443,14 @@ st.markdown(
 )
 
 FEATURES = [
-    ("🎬", "AI-Narrated Content",
-     "4-5 photorealistic scenes with professional voiceover covering the drug's key information — tailored to doctors, MRs, or chemists."),
-    ("🧠", "Quiz Questions",
-     "2 clinically relevant MCQs with plausible distractors. Tests real understanding, not rote memorisation."),
-    ("🏆", "Score & Streaks",
-     "Points, celebrations, and streak tracking. Drives repeat engagement and completion rates."),
-    ("📊", "Peer Leaderboard",
-     "Team and individual rankings. Turns product training into healthy competition across the field force."),
+    ("🎬", "Bite-Sized Video Reels",
+     "Your reps watch a 60-second reel instead of skimming a 40-page PDF. Every scene is tailored to their role — so they remember what matters."),
+    ("🧠", "Built-In Knowledge Check",
+     "Quick questions after each reel that test real understanding — not just recall. You see exactly who gets it and who doesn't."),
+    ("🏆", "Streaks That Stick",
+     "Daily streaks and instant feedback keep your team coming back. Completion rates go up because it feels like a game, not homework."),
+    ("📊", "Live Team Rankings",
+     "See who's leading across regions, teams, or roles. A little friendly competition turns training from a chore into a challenge."),
 ]
 
 fcols = st.columns(4, gap="medium")
