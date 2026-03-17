@@ -452,9 +452,9 @@ with hero_left:
         <span class="a">Make them watch a<br>60-second reel instead.</span>
       </div>
       <p class="hero-sub">
-        Turn any drug PDF into a fun, narrated video reel — followed
-        by a quick gamified quiz that tests understanding, ranks your
-        field team, and gives you learning data at scale.
+        Turn any drug PDF into a narrated video reel in under 5 minutes —
+        with every claim verified against the source. Add a gamified quiz that tests
+        understanding, ranks your field team, and gives you learning data at scale.
       </p>
       <a href="#try-it" class="hero-cta">Try it yourself <span class="arrow">&darr;</span></a>
       <div class="hero-pills">
@@ -462,6 +462,8 @@ with hero_left:
         <span class="pill">Gamified Quizzes</span>
         <span class="pill">Team Leaderboard</span>
         <span class="pill">Learning Analytics</span>
+        <span class="pill">Under 5 Minutes</span>
+        <span class="pill">Source-Verified Content</span>
       </div>
     </div>
     """, unsafe_allow_html=True)
@@ -522,6 +524,23 @@ for i, (icon, title, desc) in enumerate(FEATURES):
         </div>
         """, unsafe_allow_html=True)
 
+# ── Trust stats row ──────────────────────────────────────────────────────────
+
+trust_cols = st.columns(3, gap="medium")
+trust_stats = [
+    ("< 5 min", "PDF to finished reel"),
+    ("0%", "Hallucinated content — every claim sourced from your PDF"),
+    ("6 reels", "From a single document"),
+]
+for col, (stat, label) in zip(trust_cols, trust_stats):
+    with col:
+        st.markdown(f"""
+        <div class="feat-card" style="text-align:center; padding:1.5rem 1rem;">
+          <div style="font-family:'Montserrat',sans-serif; font-weight:900; font-size:1.8rem; color:#fd4816; margin-bottom:6px;">{stat}</div>
+          <div style="font-family:'Inter',sans-serif; font-size:12px; color:#777; line-height:1.5;">{label}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SAMPLE REELS
@@ -531,7 +550,7 @@ st.markdown('<hr class="section-rule" id="demo-reels">', unsafe_allow_html=True)
 st.markdown('<div class="s-eyebrow">See it in action</div>', unsafe_allow_html=True)
 st.markdown('<div class="s-title">Sample reels across 4 drugs</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="s-sub">Each generated from a single PDF — fully automated, no editing needed</div>',
+    '<div class="s-sub">Each generated from a single PDF — fully automated, no editing, no hallucination</div>',
     unsafe_allow_html=True,
 )
 
@@ -563,7 +582,7 @@ st.markdown('<hr class="section-rule" id="try-it">', unsafe_allow_html=True)
 st.markdown('<div class="s-eyebrow">Try it yourself</div>', unsafe_allow_html=True)
 st.markdown('<div class="s-title">Generate a reel from any drug PDF</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="s-sub">Pick a sample PDF or upload your own — takes about 5 minutes to generate</div>',
+    '<div class="s-sub">Upload any drug PDF — your reel is ready in under 5 minutes</div>',
     unsafe_allow_html=True,
 )
 
