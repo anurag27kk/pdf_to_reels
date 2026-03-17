@@ -682,7 +682,7 @@ TOOLS = [
      "input_schema": {"type": "object", "properties": {"text_path": {"type": "string"}}, "required": ["text_path"]}},
     {"name": "generate_script", "description": "Step 2: Generate a video script using Claude. Pass avoid_claims as JSON array string to exclude hallucinated claims.",
      "input_schema": {"type": "object", "properties": {
-         "text_path": {"type": "string"}, "profile": {"type": "string", "enum": ["doctor", "stockist", "retailer", "all"]},
+         "text_path": {"type": "string"}, "profile": {"type": "string", "enum": ["sales_executive", "stockist", "retailer", "doctor", "all"]},
          "topic": {"type": "string", "enum": ["intro", "indications", "mechanism", "dosage_safety", "interactions", "side_effects"]},
          "analysis_path": {"type": "string", "description": "Path to analysis JSON (optional)"},
          "avoid_claims": {"type": "array", "items": {"type": "string"}, "description": "Claims to exclude from failed validation"},
@@ -889,7 +889,7 @@ def run_agent(prompt: str, max_turns: int = 50):
 def main():
     parser = argparse.ArgumentParser(description="Autonomous Video Reel Agent")
     parser.add_argument("pdf_path", nargs="?", help="Path to drug PDF")
-    parser.add_argument("--profile", default="all", choices=["doctor", "stockist", "retailer", "all"])
+    parser.add_argument("--profile", default="sales_executive", choices=["sales_executive", "stockist", "retailer", "doctor", "all"])
     parser.add_argument("--topic", default=None)
     parser.add_argument("--all-topics", action="store_true")
     parser.add_argument("--voice", default="gaurav")

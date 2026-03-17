@@ -37,7 +37,7 @@ def _ensure_imports():
 @dataclass
 class PipelineConfig:
     pdf_path: str
-    profile: str = "doctor"
+    profile: str = "sales_executive"
     topic: str = "intro"
     voice: str = "gaurav"
     tts: str = "elevenlabs"

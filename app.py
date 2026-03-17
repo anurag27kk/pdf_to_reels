@@ -304,12 +304,13 @@ with tab_gen:
         st.markdown('<div class="sec-label">② Settings</div>', unsafe_allow_html=True)
 
         profile = st.selectbox(
-            "Audience Profile", ["doctor", "stockist", "retailer", "all"],
+            "Audience Profile", ["sales_executive", "stockist", "retailer", "doctor", "all"],
             format_func=lambda x: {
-                "doctor":   "👨‍⚕️  Doctor",
-                "stockist": "📦  Stockist",
-                "retailer": "🏪  Retailer",
-                "all":      "👥  All Profiles",
+                "sales_executive": "🤝  Sales Executive (MR)",
+                "stockist":        "📦  Stockist",
+                "retailer":        "🏪  Retailer / Chemist",
+                "doctor":          "👨‍⚕️  Doctor",
+                "all":             "👥  All Profiles",
             }[x],
         )
         topic = st.selectbox(
