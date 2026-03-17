@@ -524,23 +524,6 @@ for i, (icon, title, desc) in enumerate(FEATURES):
         </div>
         """, unsafe_allow_html=True)
 
-# ── Trust stats row ──────────────────────────────────────────────────────────
-
-trust_cols = st.columns(3, gap="medium")
-trust_stats = [
-    ("< 5 min", "PDF to finished reel"),
-    ("0%", "Hallucinated content — every claim sourced from your PDF"),
-    ("6 reels", "From a single document"),
-]
-for col, (stat, label) in zip(trust_cols, trust_stats):
-    with col:
-        st.markdown(f"""
-        <div class="feat-card" style="text-align:center; padding:1.5rem 1rem;">
-          <div style="font-family:'Montserrat',sans-serif; font-weight:900; font-size:1.8rem; color:#fd4816; margin-bottom:6px;">{stat}</div>
-          <div style="font-family:'Inter',sans-serif; font-size:12px; color:#777; line-height:1.5;">{label}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SAMPLE REELS
