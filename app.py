@@ -622,7 +622,8 @@ with right:
     topic = st.selectbox(
         "Topic",
         topic_keys,
-        format_func=lambda x: topic_labels[x],
+        format_func=lambda x: topic_labels.get(x, x),
+        key=f"topic_{profile}",
         disabled=is_generating,
     )
     voice_map = {
