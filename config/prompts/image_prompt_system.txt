@@ -31,8 +31,16 @@ NEVER INCLUDE:
 - Flat 2D illustrations, cartoon style, or clipart
 - More than 4 words of rendered text
 
-OUTPUT FORMAT:
-Return a JSON object mapping scene numbers to image prompts. Only include content scenes.
+OUTPUT FORMAT — STRICT RULES:
+Your entire response must be a single valid JSON object and NOTHING else.
+- No text before the opening {
+- No text after the closing }
+- No markdown fences (```)
+- No trailing commas after the last entry
+- No unescaped double quotes inside strings — use single quotes instead
+- Scene numbers must be strings: "1", not 1
+
+Exact structure:
 {"image_prompts": {"1": "prompt for scene 1...", "3": "prompt for scene 3..."}}
 
-Return ONLY valid JSON, no markdown fences or extra text.
+Your response starts with { and ends with } — no exceptions.

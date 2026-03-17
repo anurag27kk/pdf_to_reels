@@ -73,24 +73,42 @@ def generate_script(pdf_text: str, profile: str, topic: str, analysis: dict | No
 
 
 def _extract_json(text: str) -> dict:
-    """Extract JSON from Claude response text, handling markdown fences and trailing text."""
+    """Extract JSON from Claude response text, handling markdown fences, trailing text, and trailing commas."""
+    import re
     if text.startswith("```"):
         text = text.split("\n", 1)[1]
         text = text.rsplit("```", 1)[0]
         text = text.strip()
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        start = text.index("{")
-        depth = 0
-        for i, ch in enumerate(text[start:], start):
-            if ch == "{":
-                depth += 1
-            elif ch == "}":
-                depth -= 1
-                if depth == 0:
-                    return json.loads(text[start:i + 1])
-        raise
+
+    def _try_parse(s: str) -> dict | None:
+        try:
+            return json.loads(s)
+        except json.JSONDecodeError:
+            pass
+        # Remove trailing commas before } or ] (common LLM mistake)
+        cleaned = re.sub(r',\s*([}\]])', r'\1', s)
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            return None
+
+    result = _try_parse(text)
+    if result is not None:
+        return result
+
+    # Try to find the outermost JSON object
+    start = text.index("{")
+    depth = 0
+    for i, ch in enumerate(text[start:], start):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                result = _try_parse(text[start:i + 1])
+                if result is not None:
+                    return result
+    raise json.JSONDecodeError("Could not extract valid JSON", text, 0)
 
 
 def _call_claude(system: str, user: str, cfg: dict) -> str:

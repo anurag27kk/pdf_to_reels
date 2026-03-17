@@ -183,7 +183,7 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
 
             # Phase 2: Generate image prompts, then AI frames
             if ai_scenes:
-                on_progress("media", "Generating image prompts...", 0.50)
+                print("  Phase 2: Generating image prompts...")
                 try:
                     img_prompts = generate_image_prompts(script_data, pdf_text)
                     merged = merge_image_prompts(script_data, img_prompts)
@@ -223,7 +223,7 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
 
                 # Generate AI frames with Gemini
                 if ai_scenes:
-                    on_progress("media", "Generating AI frames...", 0.55)
+                    print("  Phase 2: Generating AI frames...")
                     api_key = os.environ.get("GOOGLE_API_KEY")
                     client = genai.Client(api_key=api_key)
                     max_workers = min(len(ai_scenes), 4)
@@ -287,7 +287,7 @@ def run_pipeline(config: PipelineConfig, on_progress: ProgressCallback | None = 
 
         if not video_path.exists():
             from step4_stitch_video import create_video
-            logo = str(BASE_DIR / "assets" / "jagsonpal_logo.jpg")
+            logo = str(BASE_DIR / "assets" / "swishx_logo.png")
             result = create_video(
                 str(frames_manifest),
                 audio_path=str(audio_path),

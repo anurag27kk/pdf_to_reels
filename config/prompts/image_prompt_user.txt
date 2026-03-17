@@ -10,5 +10,4 @@ Here is the script outline. Write an image_prompt for each content scene based o
 {script_outline}
 </script_outline>
 
-Generate image prompts as JSON: {{"image_prompts": {{"scene_number": "prompt...", ...}}}}
-Only include content scenes. Return ONLY valid JSON.
+Only include content scenes. Respond with ONLY the JSON object — no preamble, no explanation, no trailing comma after the last entry. Start your response with the opening brace.

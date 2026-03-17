@@ -53,7 +53,7 @@ def _get_encoder_args():
             pass
 
     return ["-c:v", "libx264", "-preset", preset, "-crf", str(crf)]
-DEFAULT_LOGO = os.path.join(SCRIPT_DIR, "assets", "jagsonpal_logo.jpg")
+DEFAULT_LOGO = os.path.join(SCRIPT_DIR, "assets", "swishx_logo.png")
 DEFAULT_BG_MUSIC = os.path.join(SCRIPT_DIR, "assets", "bg_music_ambient.mp3")
 
 
