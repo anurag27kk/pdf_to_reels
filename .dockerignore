@@ -1,0 +1,9 @@
+output/
+venv/
+.env
+demos/
+docs/
+__pycache__/
+*.pyc
+.DS_Store
+.git/

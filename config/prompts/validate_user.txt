@@ -1,0 +1,70 @@
+Here is the source document (the original PDF content):
+
+<source>
+{source_text}
+</source>
+
+Here is the generated video script to validate:
+
+<script>
+{script_json}
+</script>
+
+For each scene in the script, check every factual claim in the narration against the source document.
+
+Return a JSON object with this structure:
+
+{{
+  "product_name": "...",
+  "overall_accuracy": "high|medium|low",
+  "overall_score": 0.95,
+  "total_claims": 20,
+  "supported": 18,
+  "unsupported": 1,
+  "rephrased_ok": 1,
+  "neutral": 3,
+  "scenes": [
+    {{
+      "scene_number": 1,
+      "scene_type": "content",
+      "claims": [
+        {{
+          "claim": "AllerDuo combines Bilastine 20mg with Montelukast 10mg",
+          "status": "supported",
+          "source_quote": "Bilastine 20 mg, Montelukast 10 mg",
+          "note": ""
+        }},
+        {{
+          "claim": "It is a film-coated tablet",
+          "status": "supported",
+          "source_quote": "Film coated tablets containing 20mg of Bilastine and 10mg of Montelukast",
+          "note": ""
+        }}
+      ]
+    }},
+    {{
+      "scene_number": 5,
+      "scene_type": "quiz",
+      "claims": [
+        {{
+          "claim": "Q: What are the active ingredients? A: Bilastine + Montelukast",
+          "status": "supported",
+          "source_quote": "Bilastine, Montelukast",
+          "note": "Question and correct answer verified"
+        }}
+      ]
+    }}
+  ],
+  "flags": [
+    "Scene 3: claim about 'rapid onset within 1 hour' not found in source document"
+  ]
+}}
+
+Rules:
+- overall_score = supported / (supported + unsupported). Exclude neutral and rephrased_ok from the denominator.
+- flags: list any UNSUPPORTED claims as human-readable warnings
+- source_quote: the exact text from the source document that supports the claim (empty string if unsupported)
+- For quiz scenes, validate both the question accuracy and the correct answer
+- Be thorough — check drug names, dosages, indications, mechanism details, side effects, etc.
+
+Return ONLY valid JSON, no markdown fences or extra text.

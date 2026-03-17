@@ -1,0 +1,84 @@
+{
+  "agent": {
+    "model": "claude-sonnet-4-6",
+    "thinking": {"type": "adaptive"},
+    "max_turns": 50,
+    "max_budget_usd": 2.0,
+    "permission_mode": "acceptEdits"
+  },
+  "script_generation": {
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 8000
+  },
+  "script_outline": {
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 6000
+  },
+  "image_prompt_generation": {
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 4000
+  },
+  "content_analysis": {
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 16000,
+    "thinking": {"type": "adaptive"}
+  },
+  "validation": {
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 16000,
+    "thinking": {"type": "adaptive"}
+  },
+  "frame_generation": {
+    "model": "gemini-3.1-flash-image-preview",
+    "max_retries": 3,
+    "retry_delay_seconds": 1
+  },
+  "voiceover_elevenlabs": {
+    "model": "eleven_multilingual_v2",
+    "default_voice": "gaurav",
+    "output_format": "mp3_44100_128",
+    "voices": {
+      "gaurav": {"id": "SXuKWBhKoIoAHKlf6Gt3", "desc": "Professional and Calm Indian English"},
+      "raj": {"id": "wJ5MX7uuKXZwFqGdWM4N", "desc": "Professional Indian English"},
+      "viraj": {"id": "1U02n4nD6AdIZ9CjF053", "desc": "Smooth and Gentle Indian English"},
+      "ruhaan": {"id": "siw1N9V8LmYeEWKyWBxv", "desc": "Clear, Loud and Cheerful Indian English"},
+      "jeevan": {"id": "mCQMfsqGDT6IDkEKR20a", "desc": "Expressive and Confident Indian English"}
+    }
+  },
+  "voiceover_gemini": {
+    "model": "gemini-2.5-flash-preview-tts",
+    "voices": ["kore", "charon", "puck", "aoede", "fenrir", "leda", "orus", "achernar"]
+  },
+  "video_stitch": {
+    "codec": "auto",
+    "preset": "fast",
+    "crf": 23,
+    "frame_rate": 24,
+    "audio_codec": "aac",
+    "audio_bitrate": "128k",
+    "logo_width": 160,
+    "logo_opacity": 0.8,
+    "bg_music_volume": 0.08,
+    "crossfade_duration": 0.0
+  },
+  "scene_timing": {
+    "min_durations": {
+      "content": 5.0,
+      "quiz_intro": 4.0,
+      "quiz": 8.0,
+      "quiz_answer": 5.0,
+      "score": 4.0,
+      "cta": 5.0,
+      "leaderboard": 4.0
+    },
+    "padding": {
+      "content": 1.0,
+      "quiz_intro": 0.5,
+      "quiz": 4.0,
+      "quiz_answer": 1.5,
+      "score": 1.0,
+      "cta": 1.0,
+      "leaderboard": 0.0
+    }
+  }
+}

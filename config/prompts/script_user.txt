@@ -1,0 +1,119 @@
+Here is the full product information extracted from the PDF:
+
+<pdf_content>
+{pdf_content}
+</pdf_content>
+
+{profile_context}
+
+{topic_prompt}
+
+{guidance}
+
+Generate a video script as JSON with this exact structure. The video has 3 parts:
+
+PART 1 — EDUCATIONAL CONTENT (4-5 scenes, ~60s):
+Regular educational content scenes with narration and visuals.
+
+PART 2 — QUIZ (2 questions, ~30s):
+After the content, add a "quiz_intro" scene (4s) that transitions into the quiz — make it exciting and gamified like "Ready to test your knowledge? Let's go!" or "Quick challenge time — can you get both right?"
+Then for each question:
+- A "quiz" scene (6s) with the question + 4 options (A/B/C/D) — narration reads the question aloud. This gives the viewer time to think.
+- A "quiz_answer" scene (5s) that reveals the correct answer — narration gives a brief explanation of WHY it's correct.
+
+Quiz quality rules:
+- Questions must test clinically relevant knowledge, not trivial details.
+- Wrong options (distractors) should be plausible but clearly wrong — use real drug names/doses that are close but incorrect.
+- One question should test recall (what/how much), the other should test understanding (why/when).
+- The correct answer MUST be verifiable from the source document.
+
+PART 3 — GAMIFICATION (3 scenes, ~15s):
+- A "score" scene (5s) — shows quiz result ("Great job! 2/2 correct!" or "Nice! 1/2 — almost there!") with celebratory narration and XP earned.
+- A "cta" scene (6s) — motivational call-to-action. Make it feel like a game streak: "You're on fire! 3-day streak! Come back tomorrow for: [tease the next reel topic]." or "60 seconds a day makes you sharper. See you tomorrow!" — addictive, rewarding energy.
+- A "leaderboard" scene (5s) — NO narration (visual only), shows a pharma sales rep leaderboard with columns: Rank, Name, State, XP. Use Indian names and Indian states. The user ("You") should appear at rank #4 with a "YOU" badge. This creates competitive motivation.
+
+JSON structure:
+{{
+  "product_name": "the product name",
+  "reel_topic": "the topic covered",
+  "target_profile": "doctor|stockist|retailer|all",
+  "language": "en",
+  "estimated_duration_seconds": 95,
+  "total_word_count": 250,
+  "scenes": [
+    {{
+      "scene_number": 1,
+      "scene_type": "content",
+      "duration_seconds": 15,
+      "narration": "The exact words the voiceover will say.",
+      "visual_description": "What appears on screen.",
+      "image_prompt": "A detailed, drug-specific prompt for the AI image generator. Describe exact layout, icons, illustrations, and text relevant to THIS drug. E.g., for an intro scene of an anti-inflammatory enzyme tablet: 'Center: a photorealistic 3D white enteric-coated tablet floating with soft shadow. Above: large bold white text TIBROLIN. Below: smaller white text Triple-Enzyme Formula. Bottom: orange banner with white text Enteric-Coated Tablets. Clean pharmaceutical branding.' For a neuropathy drug mechanism: 'Center: stylized nerve fiber illustration with signal pathway diagram...' Be specific to the drug.",
+      "on_screen_text": ["Key Point 1", "Key Point 2"],
+      "transition_to_next": "fade"
+    }},
+    {{
+      "scene_number": 5,
+      "scene_type": "quiz_intro",
+      "duration_seconds": 4,
+      "narration": "Now let's put your knowledge to the test! Two quick questions coming up.",
+      "visual_description": "Exciting quiz intro screen with brain/lightbulb icon and pulsing animation",
+      "on_screen_text": ["Quiz Time!", "2 Questions"],
+      "transition_to_next": "zoom"
+    }},
+    {{
+      "scene_number": 6,
+      "scene_type": "quiz",
+      "duration_seconds": 6,
+      "narration": "Question one. What are the two active ingredients in AllerDuo?",
+      "visual_description": "Quiz card with question and 4 options",
+      "on_screen_text": ["Q1: What are the active ingredients?"],
+      "quiz": {{
+        "question": "What are the two active ingredients in AllerDuo?",
+        "options": ["A) Bilastine + Cetirizine", "B) Bilastine + Montelukast", "C) Loratadine + Montelukast", "D) Fexofenadine + Bilastine"],
+        "correct": "B",
+        "explanation": "AllerDuo combines Bilastine 20mg with Montelukast 10mg for dual-action relief."
+      }}
+    }},
+    {{
+      "scene_number": 6,
+      "scene_type": "quiz_answer",
+      "duration_seconds": 5,
+      "narration": "That's right! Bilastine twenty milligrams plus Montelukast ten milligrams.",
+      "visual_description": "Answer reveal with correct option highlighted in green",
+      "on_screen_text": ["Correct! B) Bilastine + Montelukast"]
+    }},
+    {{
+      "scene_number": 9,
+      "scene_type": "score",
+      "duration_seconds": 5,
+      "narration": "Amazing! You nailed it — perfect score!",
+      "visual_description": "Score celebration screen",
+      "on_screen_text": ["2/2 Correct!", "+50 XP"]
+    }},
+    {{
+      "scene_number": 10,
+      "scene_type": "cta",
+      "duration_seconds": 6,
+      "narration": "You're on a streak! Come back tomorrow for your next lesson.",
+      "visual_description": "CTA screen with streak badge and next topic teaser",
+      "on_screen_text": ["3-Day Streak!", "Tomorrow: How AllerDuo Works"]
+    }},
+    {{
+      "scene_number": 11,
+      "scene_type": "leaderboard",
+      "duration_seconds": 5,
+      "narration": "",
+      "visual_description": "Leaderboard showing top 5 with user at rank 4",
+      "on_screen_text": ["Leaderboard"],
+      "leaderboard": [
+        {{"rank": 1, "name": "Anurag", "state": "Maharashtra", "xp": 2450}},
+        {{"rank": 2, "name": "Jai", "state": "Delhi", "xp": 2280}},
+        {{"rank": 3, "name": "Dushyant", "state": "Karnataka", "xp": 2100}},
+        {{"rank": 4, "name": "You", "state": "Gujarat", "xp": 1950}},
+        {{"rank": 5, "name": "Vikas", "state": "Rajasthan", "xp": 1820}}
+      ]
+    }}
+  ]
+}}
+
+Return ONLY valid JSON, no markdown fences or extra text.

@@ -1,0 +1,14 @@
+Here is the source PDF content for drug accuracy:
+
+<pdf_content>
+{pdf_content}
+</pdf_content>
+
+Here is the script outline. Write an image_prompt for each content scene based on its narration, visual_description, and on_screen_text:
+
+<script_outline>
+{script_outline}
+</script_outline>
+
+Generate image prompts as JSON: {{"image_prompts": {{"scene_number": "prompt...", ...}}}}
+Only include content scenes. Return ONLY valid JSON.

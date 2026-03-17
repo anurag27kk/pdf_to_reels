@@ -1,0 +1,2 @@
+IMPORTANT: Minimize text in the image. Render AT MOST one short heading (2-4 words max). Do NOT attempt to render long sentences, paragraphs, bullet points, or multiple lines of text — they will look garbled. Focus on illustrations, icons, and layout instead. Any text beyond the main heading should be omitted.
+

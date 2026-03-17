@@ -1,0 +1,85 @@
+Analyze this pharmaceutical document and tell me what educational video reels we can create from it.
+
+<document>
+{content}
+</document>
+
+Return a JSON object with this exact structure:
+
+{{
+  "product_name": "the product/drug name",
+  "composition": "active ingredients with amounts (e.g. Bilastine 20mg + Montelukast 10mg)",
+  "dosage_form": "tablet/capsule/syrup/injection/etc.",
+  "therapeutic_area": "what condition/area it treats (e.g. allergic rhinitis, neuropathy)",
+  "document_type": "monograph|patient_leaflet|marketing_brochure|clinical_study|prescribing_info|other",
+  "document_structure": "brief description of how the document is organized (e.g. numbered sections 1-9, or patient leaflet with Q&A format)",
+  "available_topics": [
+    {{
+      "topic_id": "intro",
+      "topic_name": "Product Introduction",
+      "can_generate": true,
+      "confidence": "high|medium|low",
+      "source_sections": ["which sections in the document cover this"],
+      "content_summary": "1-2 sentence summary of what content is available for this topic",
+      "estimated_duration_seconds": 60
+    }},
+    {{
+      "topic_id": "indications",
+      "topic_name": "Indications — When to Use",
+      "can_generate": true,
+      "confidence": "high",
+      "source_sections": ["section 4.1"],
+      "content_summary": "...",
+      "estimated_duration_seconds": 75
+    }},
+    {{
+      "topic_id": "mechanism",
+      "topic_name": "Mechanism of Action",
+      "can_generate": false,
+      "confidence": "low",
+      "source_sections": [],
+      "content_summary": "No mechanism of action information found in this document",
+      "estimated_duration_seconds": 0
+    }},
+    {{
+      "topic_id": "dosage_safety",
+      "topic_name": "Dosage & Safety",
+      "can_generate": true,
+      "confidence": "medium",
+      "source_sections": ["..."],
+      "content_summary": "...",
+      "estimated_duration_seconds": 90
+    }},
+    {{
+      "topic_id": "interactions",
+      "topic_name": "Drug Interactions & Precautions",
+      "can_generate": true,
+      "confidence": "high",
+      "source_sections": ["..."],
+      "content_summary": "...",
+      "estimated_duration_seconds": 75
+    }},
+    {{
+      "topic_id": "side_effects",
+      "topic_name": "Side Effects & Patient Counseling",
+      "can_generate": true,
+      "confidence": "medium",
+      "source_sections": ["..."],
+      "content_summary": "...",
+      "estimated_duration_seconds": 60
+    }}
+  ],
+  "total_reels_possible": 4,
+  "recommended_reel_order": ["intro", "indications", "mechanism", "dosage_safety"],
+  "notes": "any important observations about the document quality, missing info, or special considerations"
+}}
+
+Rules:
+- All 6 topic_ids must always be present in available_topics (intro, indications, mechanism, dosage_safety, interactions, side_effects)
+- Set can_generate=false for topics where the document has insufficient content
+- confidence is "high" if there's a dedicated section with substantial content, "medium" if info is scattered/brief, "low" if barely any content
+- estimated_duration_seconds: 0 if can_generate is false, otherwise 60-120 based on content depth
+- recommended_reel_order: only include topics where can_generate=true, ordered for best learning flow
+- total_reels_possible: count of topics where can_generate=true
+
+Return ONLY valid JSON, no markdown fences or extra text.
