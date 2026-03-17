@@ -634,11 +634,11 @@ with right:
         disabled=is_generating,
     )
     voice_map = {
-        "Gaurav — Professional, Calm": "gaurav",
-        "Raj — Professional":          "raj",
-        "Viraj — Smooth, Gentle":      "viraj",
-        "Ruhaan — Clear, Cheerful":    "ruhaan",
-        "Jeevan — Expressive":         "jeevan",
+        "Gaurav — Professional, Calm":    "gaurav",
+        "Suyash — Calm Explainer":        "suyash",
+        "Sridhar — Natural, Professional": "sridhar",
+        "Ruhaan — Clear, Cheerful":       "ruhaan",
+        "Ishaan — Warm E-Learning":       "ishaan",
     }
     voice = voice_map[st.selectbox("Voice", list(voice_map.keys()), disabled=is_generating)]
     language_label = st.radio("Language", ["English", "Hindi"], horizontal=True, disabled=is_generating)
@@ -798,30 +798,16 @@ if is_generating:
 
     st.session_state.generating = False
     st.session_state.pipeline_result = result
-
-    if result.get("error"):
-        video_area.error(f"Something went wrong: {result['error']}")
-    elif result.get("video_path") and os.path.exists(result["video_path"]):
-        vid_bytes = Path(result["video_path"]).read_bytes()
-        vid_b64 = base64.b64encode(vid_bytes).decode()
-        video_area.markdown(
-            f'<video controls style="max-height:420px;width:auto;display:block;margin:0 auto;border-radius:8px;">'
-            f'<source src="data:video/mp4;base64,{vid_b64}" type="video/mp4"></video>',
-            unsafe_allow_html=True,
-        )
-        download_area.download_button(
-            "⬇  Download MP4",
-            data=vid_bytes,
-            file_name=Path(result["video_path"]).name,
-            mime="video/mp4",
-        )
-        st.toast("Your reel is ready!", icon="🎬")
-    else:
-        video_area.error("Generation completed but no video was produced.")
+    st.rerun()
 
 elif st.session_state.pipeline_result is not None:
     result = st.session_state.pipeline_result
-    if result.get("video_path") and os.path.exists(result["video_path"]):
+    if result.get("error"):
+        st.error(f"Something went wrong: {result['error']}")
+        if st.button("Try Again", use_container_width=True):
+            st.session_state.pipeline_result = None
+            st.rerun()
+    elif result.get("video_path") and os.path.exists(result["video_path"]):
         st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
         out_left, out_right = st.columns([1.2, 1], gap="large")
         with out_left:
@@ -846,10 +832,19 @@ elif st.session_state.pipeline_result is not None:
                 ✓ &nbsp;Your reel is ready
               </div>
               <div style="font-family:'Inter',sans-serif; font-size:13px; color:#444;">
-                Download or generate another reel above.
+                Download this reel before generating another — it will be replaced.
               </div>
             </div>
             """, unsafe_allow_html=True)
+            st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
+            if st.button("Generate Another Reel", use_container_width=True):
+                st.session_state.pipeline_result = None
+                st.rerun()
+    else:
+        st.error("Generation completed but no video was produced.")
+        if st.button("Try Again", use_container_width=True):
+            st.session_state.pipeline_result = None
+            st.rerun()
 
 
 # ══════════════════════════════════════════════════════════════════════════════

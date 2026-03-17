@@ -46,15 +46,28 @@ def render_leaderboard(scene: dict, filename: str) -> str | None:
 
     draw = ImageDraw.Draw(img)
 
-    _font_paths = [
+    lang = scene.get("_language", "en")
+    _font_paths_hi = [
+        "/System/Library/Fonts/Supplemental/Devanagari Sangam MN.ttc",
+        "/System/Library/Fonts/Kohinoor.ttc",
+        "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf",
+        "/usr/share/fonts/opentype/noto/NotoSansDevanagari-Regular.otf",
+    ]
+    _font_paths_en = [
         '/System/Library/Fonts/Helvetica.ttc',
         '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
     ]
     _fp = None
-    for p in _font_paths:
-        if os.path.exists(p):
-            _fp = p
-            break
+    if lang == "hi":
+        for p in _font_paths_hi:
+            if os.path.exists(p):
+                _fp = p
+                break
+    if not _fp:
+        for p in _font_paths_en:
+            if os.path.exists(p):
+                _fp = p
+                break
 
     try:
         font_bold = ImageFont.truetype(_fp, 52) if _fp else ImageFont.load_default()

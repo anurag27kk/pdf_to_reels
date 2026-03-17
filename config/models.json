@@ -39,10 +39,10 @@
     "output_format": "mp3_44100_128",
     "voices": {
       "gaurav": {"id": "SXuKWBhKoIoAHKlf6Gt3", "desc": "Professional and Calm Indian English"},
-      "raj": {"id": "wJ5MX7uuKXZwFqGdWM4N", "desc": "Professional Indian English"},
-      "viraj": {"id": "1U02n4nD6AdIZ9CjF053", "desc": "Smooth and Gentle Indian English"},
+      "suyash": {"id": "oYEnybDJL2RJBvQkATHx", "desc": "Calm Professional Explainer"},
+      "sridhar": {"id": "4djJiaeiIiFtglUCWGdA", "desc": "Calm, Natural and Professional"},
       "ruhaan": {"id": "siw1N9V8LmYeEWKyWBxv", "desc": "Clear, Loud and Cheerful Indian English"},
-      "jeevan": {"id": "mCQMfsqGDT6IDkEKR20a", "desc": "Expressive and Confident Indian English"}
+      "ishaan": {"id": "khoiAaAS0HXgHQiclUe4", "desc": "Warm E-Learning Voice"}
     }
   },
   "voiceover_gemini": {

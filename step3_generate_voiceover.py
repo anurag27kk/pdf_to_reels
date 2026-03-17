@@ -140,6 +140,17 @@ def generate_voiceover(script_path: str, voice_key: str = "gaurav") -> str:
         def _tts_one(scene):
             sn = scene["scene_number"]
             mp3 = f"{audio_dir}/scene_{sn:02d}.mp3"
+            for attempt in range(3):
+                try:
+                    dur = generate_scene_audio(client, scene["narration"].strip(), voice["id"], mp3)
+                    return sn, mp3, dur
+                except Exception as e:
+                    if "409" in str(e) or "already_running" in str(e):
+                        import time as _time
+                        _time.sleep(2 * (attempt + 1))
+                        continue
+                    raise
+            # Final attempt without catch
             dur = generate_scene_audio(client, scene["narration"].strip(), voice["id"], mp3)
             return sn, mp3, dur
 
