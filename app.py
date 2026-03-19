@@ -4,6 +4,7 @@ Product demo page
 """
 
 import os
+import json
 import time
 import base64
 import streamlit as st
@@ -28,11 +29,27 @@ def _img_b64(path):
     """Read an image file and return base64 string."""
     return base64.b64encode(Path(path).read_bytes()).decode()
 
-BASE_DIR  = Path(__file__).parent
-PDFS_DIR  = BASE_DIR / "pdfs"
-DEMOS_DIR = BASE_DIR / "demos"
-LOGO_PATH   = BASE_DIR / "assets" / "Swish_X_black_logo_02.png"
-HERO_FRAME  = BASE_DIR / "assets" / "hero_frame.jpg"
+BASE_DIR      = Path(__file__).parent
+PDFS_DIR      = BASE_DIR / "pdfs"
+DEMOS_DIR     = BASE_DIR / "demos"
+LOGO_PATH     = BASE_DIR / "assets" / "Swish_X_black_logo_02.png"
+HERO_FRAME    = BASE_DIR / "assets" / "hero_frame.jpg"
+COMPANIES_DIR = BASE_DIR / "companies"
+
+# ── Company preset (URL param: ?company=slug) ──────────────────────────────
+_company_param  = st.query_params.get("company", "")
+_company_config: dict = {}
+if _company_param:
+    _cfg_path = COMPANIES_DIR / "companies.json"
+    if _cfg_path.exists():
+        _all = json.loads(_cfg_path.read_text())
+        _company_config = _all.get(_company_param, {})
+
+PRESET_COMPANY_NAME = _company_config.get("name", "")
+PRESET_LOGO_PATH    = (
+    COMPANIES_DIR / _company_config["logo"]
+    if _company_config.get("logo") else None
+)
 
 DEMO_VIDEOS = [
     {"file": "AllerDuo_intro.mp4",        "drug": "AllerDuo",    "topic": "Intro",
@@ -688,16 +705,23 @@ with left:
     )
     st.markdown("<div style='height:.4rem'></div>", unsafe_allow_html=True)
     st.markdown('<div class="form-label">③ Company Logo (optional)</div>', unsafe_allow_html=True)
-    company_logo_file = st.file_uploader(
-        "logo", type=["png", "jpg", "jpeg"],
-        label_visibility="collapsed", disabled=is_generating,
-    )
     company_logo_path = ""
-    if company_logo_file:
-        logo_save = BASE_DIR / "output" / f"company_logo_{company_logo_file.name}"
-        logo_save.parent.mkdir(parents=True, exist_ok=True)
-        logo_save.write_bytes(company_logo_file.getbuffer())
-        company_logo_path = str(logo_save)
+    if PRESET_LOGO_PATH and PRESET_LOGO_PATH.exists():
+        # Auto-loaded from URL param — show preview, hide uploader
+        st.image(str(PRESET_LOGO_PATH), width=140)
+        if PRESET_COMPANY_NAME:
+            st.caption(f"Logo for {PRESET_COMPANY_NAME}")
+        company_logo_path = str(PRESET_LOGO_PATH)
+    else:
+        company_logo_file = st.file_uploader(
+            "logo", type=["png", "jpg", "jpeg"],
+            label_visibility="collapsed", disabled=is_generating,
+        )
+        if company_logo_file:
+            logo_save = BASE_DIR / "output" / f"company_logo_{company_logo_file.name}"
+            logo_save.parent.mkdir(parents=True, exist_ok=True)
+            logo_save.write_bytes(company_logo_file.getbuffer())
+            company_logo_path = str(logo_save)
 
 with right:
     st.markdown('<div class="form-label">④ Configure</div>', unsafe_allow_html=True)
