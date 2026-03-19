@@ -511,18 +511,25 @@ st.markdown("<div style='height:1.5rem'></div>", unsafe_allow_html=True)
 hero_left, hero_right = st.columns([3, 1.8], gap="large")
 
 with hero_left:
-    st.markdown("""
+    _eyebrow = f"For {PRESET_COMPANY_NAME} · Pharma L&D, reimagined" if PRESET_COMPANY_NAME else "Pharma L&D, reimagined"
+    _title_line2 = f"<span class='a'>Make {PRESET_COMPANY_NAME}'s<br>team watch a<br>60-second reel instead.</span>" if PRESET_COMPANY_NAME else "<span class='a'>Make them watch a<br>60-second reel instead.</span>"
+    _sub = (
+        f"Turn any {PRESET_COMPANY_NAME} drug PDF into a narrated video reel in under 5 minutes — "
+        "with every claim verified against the source. Add a gamified quiz that tests "
+        "understanding, ranks your field team, and gives you learning data at scale."
+    ) if PRESET_COMPANY_NAME else (
+        "Turn any drug PDF into a narrated video reel in under 5 minutes — "
+        "with every claim verified against the source. Add a gamified quiz that tests "
+        "understanding, ranks your field team, and gives you learning data at scale."
+    )
+    st.markdown(f"""
     <div style="padding-top:.8rem;">
-      <div class="hero-eyebrow">Pharma L&D, reimagined</div>
+      <div class="hero-eyebrow">{_eyebrow}</div>
       <div class="hero-title">
         Nobody reads a<br>40-page PDF.<br>
-        <span class="a">Make them watch a<br>60-second reel instead.</span>
+        {_title_line2}
       </div>
-      <p class="hero-sub">
-        Turn any drug PDF into a narrated video reel in under 5 minutes —
-        with every claim verified against the source. Add a gamified quiz that tests
-        understanding, ranks your field team, and gives you learning data at scale.
-      </p>
+      <p class="hero-sub">{_sub}</p>
       <a href="#try-it" class="hero-cta">Try it yourself <span class="arrow">&darr;</span></a>
       <div class="hero-pills">
         <span class="pill">AI-Narrated Reels</span>
